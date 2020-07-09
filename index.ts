@@ -14,9 +14,10 @@ function bindAll(config: AuthorizedConfig, fnMap: FunctionMap): FunctionMap {
   }, {})
 }
 
-function xkit(domain: string, token: string): FunctionMap {
-  return bindAll({ domain, token }, {
+function xkit(domain: string): FunctionMap {
+  return bindAll({ domain }, {
     login,
+    getAccessToken,
     logout
   })
 }
