@@ -3,7 +3,8 @@ import { request } from './request'
 
 export interface Platform {
   name: string,
-  domain: string,
+  slug: string,
+  custom_domain?: string,
   website: string,
   login_redirect_url: string
 }

@@ -19,7 +19,8 @@ async function initializeSocket(config: AuthorizedConfig): Promise<Socket> {
   }
 
   // need to add protocol config
-  socket = new Socket(`ws://${config.domain}${SOCKET_ENDPOINT}`, { params })
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  socket = new Socket(`${protocol}//${config.domain}${SOCKET_ENDPOINT}`, { params })
   socket.onClose(socketClose)
   socket.onError(socketClose)
   socket.connect()
