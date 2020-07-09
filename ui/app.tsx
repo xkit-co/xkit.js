@@ -66,7 +66,7 @@ class App extends React.Component<AppProps, {}> {
       <ConfigWrapper domain={domain} token={token} loginRedirect={loginRedirect}>
         <Route path="/" strict={true}>
           <ThemeProvider value={theme}>
-            <Pane width="80%" maxWidth={800} margin="auto" marginTop={majorScale(5)}>
+            <Pane width="80%" maxWidth={800} margin="auto">
               <Home />
             </Pane>
           </ThemeProvider>

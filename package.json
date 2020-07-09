@@ -9,7 +9,7 @@
   "unpkg": "dist/browser.js",
   "scripts": {
     "dev": "parcel watch index.ts browser.ts react-app.tsx",
-    "build": "parcel build --experimental-scope-hoisting --no-cache index.ts browser.ts react-app.tsx",
+    "build": "parcel build --no-cache index.ts browser.ts react-app.tsx",
     "test": "tsc --noEmit"
   },
   "author": "Xkit <dev@xkit.co>",

@@ -91,7 +91,7 @@ export async function request(config: IKitConfig, options: RequestOptions): Prom
 
   // need to add protocol configuration
   const res = await fetch(
-    `http://${config.domain}${API_PATH}${options.path}`,
+    `${window.location.protocol}//${config.domain}${API_PATH}${options.path}`,
     getFetchOptions(config, options)
   )
 

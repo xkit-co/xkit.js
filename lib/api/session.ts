@@ -19,8 +19,6 @@ export async function logout(config: IKitConfig): Promise<void> {
   })
 }
 
-export getAccessToken
-
 export async function getAccessToken(config: IKitConfig): Promise<string> {
   const {
     access_token
