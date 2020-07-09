@@ -35,6 +35,14 @@ export function isComplete(status: AuthorizationStatus | string): boolean {
   return [AuthorizationStatus.active, AuthorizationStatus.error].includes(status)
 }
 
+// TODO: Don't hardcode this in here
+export function loadingPath(authorization?: Authorization): string {
+  if (!authorization) {
+    return '/authorizations/loading'
+  }
+  return `/authorizations/${authorization.authorizer.prototype.slug}/loading`
+}
+
 export async function createAuthorization(config: AuthorizedConfig, prototypeSlug: string): Promise<Authorization> {
   const {
     authorization
@@ -79,8 +87,9 @@ export async function refreshAuthorization(config: AuthorizedConfig, prototypeSl
 
 export async function subscribeToStatus(config: AuthorizedConfig, authorizationId: string | number): Promise<[Emitter, AuthorizationStatus]> {
   const emitter = new Emitter()
-  console.log('about to subscribe')
   const [channel, { status }] = (await subscribe(config, `authorization_status:${authorizationId}`)) as [Channel, { status: string }]
+  console.debug(`Subscribed to channel`, channel)
+
   if (isComplete(status)) {
     console.debug(`Removing subscription to authorization status, already in a terminal state: ${status}.`)
     await leave(channel)

@@ -33,3 +33,9 @@ export async function getAccessToken(config: IKitConfig): Promise<string> {
 
   return access_token as string
 }
+
+export async function assertToken(config: IKitConfig): Promise<void> {
+  await request(config, {
+    path: '/session'
+  })
+}

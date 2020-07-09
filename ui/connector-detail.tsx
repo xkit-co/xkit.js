@@ -19,6 +19,7 @@ import { Connector } from '../lib/api/connector'
 import { Connection, removeConnection } from '../lib/api/connection'
 import { AuthorizationStatus } from '../lib/api/authorization'
 import { connect, reconnect } from '../lib/connect'
+import { prepareAuthWindow } from '../lib/authorize'
 import { toaster } from './toaster'
 import Markdown from './markdown'
 import ConnectorMark from './connector-mark'
@@ -59,7 +60,9 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
   handleInstall = async (): Promise<void> => {
     try {
       this.setState({ loading: true })
-      const connection = await callWithConfig(config => connect(config, this.props.connector))
+      const connection = await prepareAuthWindow(this.props.config, authWindow => {
+        return callWithConfig(config => connect(config, authWindow, this.props.connector))
+      })
       this.setState({ connection })
       toaster.success(`Installed ${this.props.connector.name}`)
     } catch (e) {
@@ -85,7 +88,9 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
   handleReconnect = async (): Promise<void> => {
     try {
       this.setState({ reconnectLoading: true })
-      const connection = await callWithConfig(config => reconnect(config, this.state.connection))
+      const connection = await prepareAuthWindow(this.props.config, authWindow => {
+        callWithConfig(config => reconnect(config, authWindow, this.state.connection))
+      })
       this.setState({ connection })
       toaster.success(`Reconnected to ${this.props.connector.name}`)
     } catch (e) {

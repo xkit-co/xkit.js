@@ -87,8 +87,6 @@ async function parseData(res: Response): Promise<UnknownJSON> {
 }
 
 export async function request(config: IKitConfig, options: RequestOptions): Promise<UnknownJSON> {
-  console.log(options.path, getFetchOptions(config, options))
-
   // need to add protocol configuration
   const res = await fetch(
     `${window.location.protocol}//${config.domain}${API_PATH}${options.path}`,
