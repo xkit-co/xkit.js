@@ -36,6 +36,20 @@ export async function getConnectionOrConnector(config: AuthorizedConfig, connect
   }
 }
 
+export async function getConnectionToken(config: AuthorizedConfig, connectorSlug: string): Promise<string | null> {
+  try {
+    const connection = await getConnection(config, connectorSlug)
+    if (connection.enabled && connection.authorization && connection.authorization.access_token) {
+      return connection.authorization.access_token
+    }
+  } catch (e) {
+    if (!(e instanceof IKitAPIError && e.statusCode === 404)) {
+      throw e
+    }
+  }
+  return null
+}
+
 export async function createConnection(config: AuthorizedConfig, connectorSlug: string): Promise<Connection> {
   const {
     connection
