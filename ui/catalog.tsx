@@ -1,10 +1,27 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Pane, Card, Heading, InboxIcon, SearchInput, Spinner, Colors, majorScale } from 'evergreen-ui'
+import {
+  Pane,
+  Card,
+  Heading,
+  InboxIcon,
+  SearchInput,
+  BackButton,
+  Spinner,
+  Colors,
+  majorScale
+} from 'evergreen-ui'
 import { compareTwoStrings } from 'string-similarity'
 import CatalogThumb from './catalog-thumb'
 import { IKitConfig } from '../lib/config'
-import { listConnectors, Connector } from '../lib/api/connector'
+import {
+  listConnectors,
+  Connector
+} from '../lib/api/connector'
+import {
+  getPlatform,
+  Platform
+} from '../lib/api/platform'
 import { toaster } from './toaster'
 import {
   ConfigConsumer,
@@ -15,7 +32,8 @@ import {
 interface CatalogState {
   connectors: Connector[]
   loaded: boolean,
-  search: string
+  search: string,
+  platform?: Platform
 }
 
 const SIMILARITY_MIN = 0.75
@@ -32,6 +50,7 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
 
   componentDidMount () {
     this.loadConnectors()
+    this.loadPlatform()
   }
 
   async loadConnectors (): Promise<void> {
@@ -43,6 +62,26 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
     } finally {
       this.setState({ loaded: true })
     }
+  }
+
+  async loadPlatform (): Promise<void> {
+    try {
+      const platform = await callWithConfig(getPlatform)
+      this.setState({ platform })
+    } catch (e) {
+      console.debug(`Failed to load platform`, e)
+    }
+  }
+
+  renderBackButton () {
+    const { platform } = this.state
+    if (!platform || !platform.website) return
+
+    return (
+      <Pane marginTop={majorScale(3)}>
+        <BackButton is="a" href={platform.website}>Back to {platform.name}</BackButton>
+      </Pane>
+    )
   }
 
   renderConnectors () {
@@ -108,6 +147,7 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
         >
           {this.renderConnectors()}
         </Pane>
+        {this.renderBackButton()}
       </Pane>
     )
   }
