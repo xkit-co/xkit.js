@@ -43,7 +43,7 @@ export async function getConnectionToken(config: AuthorizedConfig, connectorSlug
       return connection.authorization.access_token
     }
   } catch (e) {
-    if (!(e instanceof IKitAPIError && e.statusCode === 404)) {
+    if (!(e instanceof IKitAPIError && (e.statusCode === 404 || e.statusCode === 401)) {
       throw e
     }
   }
