@@ -13,6 +13,10 @@ export interface Connector {
   }
 }
 
+export function connectorPath (slug: string): string {
+  return `/connectors/${slug}`
+}
+
 export async function listConnectors(config: AuthorizedConfig): Promise<Connector[]> {
   const {
     connectors
@@ -27,7 +31,7 @@ export async function getConnector(config: AuthorizedConfig, connectorSlug: stri
   const {
     connector
   } = await request(config, {
-    path: `/connectors/${connectorSlug}`
+    path: connectorPath(connectorSlug)
   })
 
   return connector as Connector

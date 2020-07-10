@@ -5,6 +5,7 @@ import {
   getConnectionOrConnector,
   getConnectionToken
 } from './lib/api/connection'
+import { connectorPath } from './lib/api/connector'
 import { getPlatform } from './lib/api/platform'
 
 function bindConfig(config: IKitConfig, fn: Function): Function {
@@ -44,6 +45,7 @@ function xkit(domain: string): FunctionMap {
 
   return {
     url: `${window.location.protocol}//${domain}`,
+    connectorUrl: (slug: string) => `${window.location.protocol}//${config.domain}${connectorPath(slug)}`,
     getAccessToken: bindConfig(config, getAccessToken),
     logout: bindConfig(config, logout),
     getConnection: bindConfig(config, getConnection),
