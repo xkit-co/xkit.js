@@ -47,10 +47,13 @@ function xkit(domain: string): FunctionMap {
     url: `${window.location.protocol}//${domain}`,
     connectorUrl: (slug: string) => `${window.location.protocol}//${config.domain}${connectorPath(slug)}`,
     getAccessToken: bindConfig(config, getAccessToken),
-    logout: bindConfig(config, logout),
     getConnection: bindConfig(config, getConnection),
     getConnectionOrConnector: bindConfig(config, getConnectionOrConnector),
     getConnectionToken: bindConfig(config, getConnectionToken),
+    logout: async () => {
+      await logout(config)
+      config.token = undefined
+    },
     login: async (token: string) => {
       await login(config, token)
       config.token = token

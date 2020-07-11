@@ -7,7 +7,8 @@ const domRoot = document.getElementById('xkit-app')
 
 // If the domRoot doesn't exist, we're probably not on the right page and we can skip rendering
 if (domRoot) {
-  const domain = domRoot.dataset.domain || `${window.location.host}`
+  const xkitDomain = window.xkit && window.xkit.url ? window.xkit.url : null
+  const domain = domRoot.dataset.domain || xkitDomain || `${window.location.host}`
   const token = domRoot.dataset.token
   const rootPath = domRoot.dataset.path
   const routerType = domRoot.dataset.router
