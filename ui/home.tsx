@@ -40,11 +40,19 @@ class Home extends React.Component<ConfigConsumer, HomeState> {
     if (this.props.config && this.props.config.domain) {
       this.loadPlatform()
     }
+    if (!this.props.hideTitle) {
+      document.title = this.title()
+    }
   }
 
   componentDidUpdate (prevProps): void {
     if ((!prevProps.config || !prevProps.config.domain) && (this.props.config && this.props.config.domain)) {
       this.loadPlatform()
+    }
+    if (prevProps.hideTitle !== this.props.hideTitle) {
+      if (!this.props.hideTitle) {
+        document.title = this.title()
+      }
     }
   }
 
@@ -53,11 +61,27 @@ class Home extends React.Component<ConfigConsumer, HomeState> {
     try {
       const platform = await callWithConfig(getPlatform)
       this.setState({ platform })
+      if (!this.props.hideTitle) {
+        document.title = this.title()
+      }
     } catch (e) {
       toaster.danger(`Error while loading platform: ${e.message}`)
     } finally {
       this.setState({ loading: false })
     }
+  }
+
+  title (): string {
+    const {
+      title,
+      configLoading,
+    } = this.props
+    const {
+      platform,
+      loading
+    } = this.state
+
+    return loading || configLoading || title ? title : `${platform.name} Integrations`
   }
 
   render (): React.Element {
@@ -72,8 +96,6 @@ class Home extends React.Component<ConfigConsumer, HomeState> {
       platform,
       loading
     } = this.state
-    const finalTitle = loading || configLoading || title ? title : `${platform.name} Integrations`
-
 
     if (loading || configLoading) {
       return <Spinner marginX="auto"  marginY={150} size={majorScale(6)} />
@@ -81,7 +103,7 @@ class Home extends React.Component<ConfigConsumer, HomeState> {
 
     return (
       <>
-        {hideTitle ? '' : <Heading size={800} marginBottom={majorScale(2)}>{finalTitle}</Heading>}
+        {hideTitle ? '' : <Heading size={800} marginBottom={majorScale(2)}>{this.title()}</Heading>}
         <Switch>
           <Route path={['/', '/connectors']} exact={true}>
             <Catalog
