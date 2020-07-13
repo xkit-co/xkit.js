@@ -8,7 +8,7 @@ import {
 import {
   Switch,
   Route,
-  withRouter
+  RouteComponentProps
 } from 'react-router-dom'
 import {
   Heading,
@@ -23,12 +23,17 @@ import {
   getPlatform
 } from '../lib/api/platform'
 
+interface HomeProps {
+  title?: string,
+  hideTitle?: boolean
+}
+
 interface HomeState {
   loading: boolean
   platform?: Platform
 }
 
-class Home extends React.Component<ConfigConsumer, HomeState> {
+class Home extends React.Component<ConfigConsumer<HomeProps>, HomeState> {
   constructor (props) {
     super(props)
     this.state = {
@@ -81,7 +86,15 @@ class Home extends React.Component<ConfigConsumer, HomeState> {
       loading
     } = this.state
 
-    return loading || configLoading || title ? title : `${platform.name} Integrations`
+    if (title) {
+      return title
+    }
+
+    if (platform) {
+      return `${platform.name} Integrations`
+    }
+
+    return 'Loading...'
   }
 
   render (): React.Element {
@@ -89,8 +102,7 @@ class Home extends React.Component<ConfigConsumer, HomeState> {
       title,
       hideTitle,
       config,
-      configLoading,
-      match
+      configLoading
     } = this.props
     const {
       platform,

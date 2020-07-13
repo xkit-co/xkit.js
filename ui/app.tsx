@@ -59,7 +59,9 @@ class App extends React.Component<AppProps, {}> {
     const {
       domain,
       token,
-      loginRedirect
+      loginRedirect,
+      title,
+      hideTitle
     } = this.props
 
     return (
@@ -67,7 +69,7 @@ class App extends React.Component<AppProps, {}> {
         <Route path="/" strict={true}>
           <ThemeProvider value={theme}>
             <Pane width="80%" maxWidth={800} margin="auto">
-              <Home />
+              <Home title={title} hideTitle={hideTitle} />
             </Pane>
           </ThemeProvider>
         </Route>
