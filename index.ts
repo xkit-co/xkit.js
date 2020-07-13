@@ -50,11 +50,11 @@ function xkit(domain: string): FunctionMap {
     getConnection: bindConfig(config, getConnection),
     getConnectionOrConnector: bindConfig(config, getConnectionOrConnector),
     getConnectionToken: bindConfig(config, getConnectionToken),
-    logout: async () => {
+    logout: async (): Promise<void> => {
       await logout(config)
       config.token = undefined
     },
-    login: async (token: string) => {
+    login: async (token: string): Promise<void> => {
       await login(config, token)
       config.token = token
     }
