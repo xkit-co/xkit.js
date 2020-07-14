@@ -135,7 +135,7 @@ export function authorize(config: AuthorizedConfig, authWindow: AuthWindow, auth
         })
 
         if (status === AuthorizationStatus.awaiting_callback) {
-          loadAuthWindow(config, authWindow authorization).catch(reject)
+          loadAuthWindow(config, authWindow, authorization).catch(reject)
         }
       })
       .catch(reject)
