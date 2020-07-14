@@ -1,15 +1,20 @@
-import { AuthorizedConfig } from './lib/config'
+import { IKitConfig } from './lib/config'
 import { login, getAccessToken, logout } from './lib/api/session'
 import {
+  Connection,
+  ConnectionShell,
   getConnection,
   getConnectionOrConnector,
   getConnectionToken
 } from './lib/api/connection'
-import { connectorPath } from './lib/api/connector'
+import {
+  Connector,
+  connectorPath
+} from './lib/api/connector'
 import { getPlatform } from './lib/api/platform'
 
-function bindConfig(config: IKitConfig, fn: Function): Function {
-  return async function (...args) {
+function bindConfig<T>(config: IKitConfig, fn: (...args: unknown[]) => Promise<T>): (...args: unknown[]) => Promise<T> {
+  return async function (...args: unknown[]): Promise<T> {
     try {
       const res = await fn(config, ...args)
       return res
@@ -25,7 +30,7 @@ function bindConfig(config: IKitConfig, fn: Function): Function {
             if (!login_redirect_url) {
               throw new Error("Unable to load redirect url")
             }
-            window.location = login_redirect_url
+            window.location.href = login_redirect_url
           } catch (e) {
             throw new Error('Misconfigured site: unable to retrieve login redirect location')
           }
@@ -40,8 +45,19 @@ function bindConfig(config: IKitConfig, fn: Function): Function {
   }
 }
 
-function xkit(domain: string): FunctionMap {
-  const config = { domain }
+export interface XkitJs {
+  url: string,
+  connectorUrl: (slug: string) => string,
+  getAccessToken: () => Promise<string>,
+  getConnection: (slug: string) => Promise<Connection>,
+  getConnectionOrConnector: (slug: string) => Promise<ConnectionShell>,
+  getConnectionToken: (slug: string) => Promise<string | null>,
+  logout: () => Promise<void>
+  login: (token: string) => Promise<void>
+}
+
+function xkit(domain: string): XkitJs {
+  const config: IKitConfig = { domain }
 
   return {
     url: `${window.location.protocol}//${domain}`,
