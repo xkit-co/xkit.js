@@ -31,14 +31,14 @@ export interface Authorization {
   authorize_url?: AuthorizeUrl
 }
 
-function isStatus(status: string) status is AuthorizationStatus {
+function isStatus(status: string): status is AuthorizationStatus {
   const statuses: string[] = Object.values(AuthorizationStatus)
   return statuses.includes(status)
 }
 
 export function isComplete(status: string): boolean {
   const completeStatuses: string[] = [AuthorizationStatus.active, AuthorizationStatus.error]
-  return statuses.includes(status)
+  return completeStatuses.includes(status)
 }
 
 // TODO: Don't hardcode this in here
@@ -123,8 +123,6 @@ export async function subscribeToStatus(config: AuthorizedConfig, authorizationI
       return
     }
   })
-
-  if (Object.key)
 
   return [emitter, status]
 }

@@ -1,5 +1,5 @@
 import { IKitConfig, AuthorizedConfig } from '../config'
-import { request, getAccessToken } from './request'
+import { request } from './request'
 
 export async function login(config: IKitConfig, token: string): Promise<AuthorizedConfig> {
   const configWithToken = Object.assign({}, config, { token })

@@ -1,5 +1,5 @@
 import { Socket, Channel, Push } from 'phoenix'
-import { AuthorizedConfig } from './config'
+import { AuthorizedConfig } from '../config'
 import { assertToken } from './session'
 
 const SOCKET_ENDPOINT = '/socket'
@@ -8,15 +8,21 @@ interface SocketParams {
   token: string
 }
 
-let socket
+interface UndocumentedSocket extends Socket {
+  reconnectTimer: {
+    reset: () => void
+  }
+}
 
-function resetSocket(socket: Socket): Socket {
+let socket: UndocumentedSocket | null
+
+function resetSocket(socket: UndocumentedSocket): UndocumentedSocket {
   socket.reconnectTimer.reset()
   socket.disconnect(() => {})
   return socket
 }
 
-async function initializeSocket(config: AuthorizedConfig): Promise<Socket> {
+async function initializeSocket(config: AuthorizedConfig): Promise<UndocumentedSocket> {
   if (socket) {
     if (socket.isConnected) {
       return socket
@@ -34,7 +40,7 @@ async function initializeSocket(config: AuthorizedConfig): Promise<Socket> {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
 
   return new Promise((resolve, reject) => {
-    socket = new Socket(`${protocol}//${config.domain}${SOCKET_ENDPOINT}`, { params })
+    socket = new Socket(`${protocol}//${config.domain}${SOCKET_ENDPOINT}`, { params }) as UndocumentedSocket
     let socketHasOpened = false
     socket.onOpen(() => {
       socketHasOpened = true
@@ -81,7 +87,7 @@ function promisifyPush(push: Push): Promise<unknown> {
   })
 }
 
-export async function subscribe(config: IKitConfig, topic: string): Promise<[Channel, unknown]> {
+export async function subscribe(config: AuthorizedConfig, topic: string): Promise<[Channel, unknown]> {
   const socket = await initializeSocket(config)
   console.debug(`Initialized socket`, socket)
   const channel = socket.channel(topic)
@@ -96,6 +102,6 @@ export async function subscribe(config: IKitConfig, topic: string): Promise<[Cha
   return [channel, reply]
 }
 
-export function leave(channel: Channel): Promise<void> {
-  return promisifyPush(channel.leave())
+export async function leave(channel: Channel): Promise<void> {
+  await promisifyPush(channel.leave())
 }
