@@ -5,7 +5,7 @@ export function delay (ms: number): Promise<boolean> {
 }
 
 function noop () {}
-function allTrue () { return true }
+function allTrue (msg): msg is unknown { return true }
 
 export async function onWindowClose(window: Window, fn = noop, pollDelay = 200): Promise<void> {
   while (window != null && !window.closed) {
@@ -22,8 +22,10 @@ export async function silent(fn: Function): Promise<void> {
   }
 }
 
-export function captureMessages(origin, filter = allTrue) {
-  const messages = []
+type filterMsg<T> = (msg: unknown) => msg is T
+
+export function captureMessages<T>(origin, filter: filterMsg<T> = allTrue): T[] {
+  const messages: T[] = []
   window.addEventListener('message', (event) => {
     console.debug(`incoming message`, event)
     if (event.origin === origin && filter(event.data, event)) {

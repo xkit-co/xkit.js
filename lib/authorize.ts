@@ -1,4 +1,4 @@
-import { IKitConfig } from './config'
+import { IKitConfig, AuthorizedConfig } from './config'
 import {
   getAuthorization,
   Authorization,
@@ -8,12 +8,13 @@ import {
   loadingPath
 } from './api/authorization'
 import { onWindowClose, captureMessages } from './util'
+import Emitter from './emitter'
 
 interface AuthorizationToBeSetup extends Required<Omit<Authorization, 'access_token' | 'status'>> {
   status: AuthorizationStatus.awaiting_callback
 }
 
-interface AuthWindow {
+export interface AuthWindow {
   errors: string[],
   ref: Window
 }
@@ -52,20 +53,28 @@ function replaceAuthWindowURL(authWindow: AuthWindow, url: string): AuthWindow {
   return authWindow
 }
 
-async function onAuthWindowClose(authWindow: AuthWindow): void {
+async function onAuthWindowClose(authWindow: AuthWindow): Promise<void> {
   await onWindowClose(authWindow.ref)
 
   if (authWindow.errors.length) {
-    throw new Error(errors[0].error)
+    throw new Error(authWindow.errors[0].error)
   }
 }
 
-export async function prepareAuthWindow(config: IKitConfig, callback: AuthWindowCallback): void {
+interface ErrorMessage {
+  error: string
+}
+
+function isMessageError (msg: unknown): msg is ErrorMessage {
+  return typeof msg === 'object' && msg !== null && Boolean(msg.error)
+}
+
+export async function prepareAuthWindow(config: IKitConfig, callback: AuthWindowCallback): Promise<void> {
   const loadingUrl = `${popupHost(config)}${loadingPath()}`
 
   const ref = window.open(loadingUrl, windowName(), AUTH_POP_PARAMS)
 
-  const errors = captureMessages(popupHost(config), (msg) => Boolean(msg.error))
+  const errors = captureMessages<ErrorMessage>(popupHost(config), isMessageError)
 
   try {
     const ret = await callback({ ref, errors })
@@ -77,7 +86,7 @@ export async function prepareAuthWindow(config: IKitConfig, callback: AuthWindow
   }
 }
 
-async function loadAuthWindow(config: IKitConfig, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
+async function loadAuthWindow(config: AuthorizedConfig, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
   if (!isAuthorizationReadyForSetup(authorization)) {
     throw new Error('Authorization is not in a state to be setup.')
   }
@@ -93,7 +102,7 @@ async function loadAuthWindow(config: IKitConfig, authWindow: AuthWindow, author
   }
 }
 
-async function updateAuthorization(config: IKitConfig, authorization: Authorization): Promise<Authorization> {
+async function updateAuthorization(config: AuthorizedConfig, authorization: Authorization): Promise<Authorization> {
   const newAuthorization = await getAuthorization(config, authorization.authorizer.prototype.slug, authorization.id)
 
   if (newAuthorization.status === AuthorizationStatus.error) {
