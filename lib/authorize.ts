@@ -7,15 +7,33 @@ import {
   subscribeToStatus,
   loadingPath
 } from './api/authorization'
-import { onWindowClose, captureMessages } from './util'
+import {
+  onWindowClose,
+  captureMessages,
+  hasOwnProperty
+} from './util'
 import Emitter from './emitter'
 
 interface AuthorizationToBeSetup extends Required<Omit<Authorization, 'access_token' | 'status'>> {
   status: AuthorizationStatus.awaiting_callback
 }
 
+interface ErrorMessage {
+  error: string
+}
+
+function isMessageError (msg: unknown): msg is ErrorMessage {
+  if (typeof msg === 'object' &&
+      msg !== null &&
+      hasOwnProperty(msg, 'error')) {
+    return typeof msg.error === 'string'
+  }
+
+  return false
+}
+
 export interface AuthWindow {
-  errors: string[],
+  errors: ErrorMessage[],
   ref: Window
 }
 
@@ -59,14 +77,6 @@ async function onAuthWindowClose(authWindow: AuthWindow): Promise<void> {
   if (authWindow.errors.length) {
     throw new Error(authWindow.errors[0].error)
   }
-}
-
-interface ErrorMessage {
-  error: string
-}
-
-function isMessageError (msg: unknown): msg is ErrorMessage {
-  return typeof msg === 'object' && msg !== null && Boolean(msg.error)
 }
 
 export async function prepareAuthWindow(config: IKitConfig, callback: AuthWindowCallback): Promise<void> {
