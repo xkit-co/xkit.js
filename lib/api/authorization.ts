@@ -31,8 +31,14 @@ export interface Authorization {
   authorize_url?: AuthorizeUrl
 }
 
-export function isComplete(status: AuthorizationStatus | string): boolean {
-  return [AuthorizationStatus.active, AuthorizationStatus.error].includes(status)
+function isStatus(status: string) status is AuthorizationStatus {
+  const statuses: string[] = Object.values(AuthorizationStatus)
+  return statuses.includes(status)
+}
+
+export function isComplete(status: string): boolean {
+  const completeStatuses: string[] = [AuthorizationStatus.active, AuthorizationStatus.error]
+  return statuses.includes(status)
 }
 
 // TODO: Don't hardcode this in here
@@ -90,10 +96,14 @@ export async function subscribeToStatus(config: AuthorizedConfig, authorizationI
   const [channel, { status }] = (await subscribe(config, `authorization_status:${authorizationId}`)) as [Channel, { status: string }]
   console.debug(`Subscribed to channel`, channel)
 
+  if (!isStatus(status)) {
+    throw new Error(`Invalid status returned from subscription: ${status}`)
+  }
+
   if (isComplete(status)) {
     console.debug(`Removing subscription to authorization status, already in a terminal state: ${status}.`)
     await leave(channel)
-    return [null, status]
+    return [null, status as AuthorizationStatus]
   }
 
   channel.onError((err: Error | string) => {
@@ -113,6 +123,8 @@ export async function subscribeToStatus(config: AuthorizedConfig, authorizationI
       return
     }
   })
+
+  if (Object.key)
 
   return [emitter, status]
 }
