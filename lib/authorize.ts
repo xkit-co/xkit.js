@@ -37,7 +37,7 @@ export interface AuthWindow {
   ref: Window
 }
 
-type AuthWindowCallback = (authWindow: AuthWindow) => Promise<any>
+type AuthWindowCallback<T> = (authWindow: AuthWindow) => Promise<T>
 
 const AUTH_POP_PARAMS: string = Object.entries({
   scrollbars: 'no',
@@ -79,7 +79,7 @@ async function onAuthWindowClose(authWindow: AuthWindow): Promise<void> {
   }
 }
 
-export async function prepareAuthWindow(config: IKitConfig, callback: AuthWindowCallback): Promise<void> {
+export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWindowCallback<T>): Promise<T> {
   const loadingUrl = `${popupHost(config)}${loadingPath()}`
 
   const ref = window.open(loadingUrl, windowName(), AUTH_POP_PARAMS)

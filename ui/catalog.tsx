@@ -28,53 +28,48 @@ import {
   withConfig,
   callWithConfig
 } from './config-wrapper'
+import { theme } from './theme'
+
+interface CatalogProps {
+  platform: Platform
+}
 
 interface CatalogState {
   connectors: Connector[]
-  loaded: boolean,
-  search: string,
-  platform?: Platform
+  loading: boolean,
+  search: string
 }
 
 const SIMILARITY_MIN = 0.75
 
-class Catalog extends React.Component<ConfigConsumer, CatalogState> {
-  constructor (props: ConfigConsumer) {
+class Catalog extends React.Component<ConfigConsumer<CatalogProps>, CatalogState> {
+  constructor (props: ConfigConsumer<CatalogProps>) {
     super(props)
     this.state = {
       connectors: [],
-      loaded: false,
+      loading: true,
       search: ""
     }
   }
 
   componentDidMount () {
     this.loadConnectors()
-    this.loadPlatform()
   }
 
   async loadConnectors (): Promise<void> {
+    this.setState({ loading: true })
     try {
       const connectors = await callWithConfig(config => listConnectors(config))
       this.setState({ connectors })
     } catch (e) {
       toaster.danger(`Error while loading connectors: ${e.message}`)
     } finally {
-      this.setState({ loaded: true })
-    }
-  }
-
-  async loadPlatform (): Promise<void> {
-    try {
-      const platform = await callWithConfig(getPlatform)
-      this.setState({ platform })
-    } catch (e) {
-      console.debug(`Failed to load platform`, e)
+      this.setState({ loading: false })
     }
   }
 
   renderBackButton () {
-    const { platform } = this.state
+    const { platform } = this.props
     if (!platform || !platform.website) return
 
     return (
@@ -85,8 +80,8 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
   }
 
   renderConnectors () {
-    const { connectors, loaded, search } = this.state
-    if (!loaded) {
+    const { connectors, loading, search } = this.state
+    if (loading) {
       return (
         <EmptyCatalog>
           <Spinner margin="auto" />
@@ -152,7 +147,7 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
 }
 
 interface EmptyCatalogProps {
-  background?: keyof typeof Colors.background
+  background?: keyof Colors['background']
 }
 
 const EmptyCatalog: React.FC<EmptyCatalogProps> = ({ background, children }): React.ReactElement => {
@@ -160,6 +155,7 @@ const EmptyCatalog: React.FC<EmptyCatalogProps> = ({ background, children }): Re
     <Card
       flexGrow={1}
       marginRight={majorScale(3)}
+      marginBottom={majorScale(3)}
       background={background}
       padding={majorScale(2)}
       height={150}

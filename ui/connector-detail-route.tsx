@@ -4,9 +4,10 @@ import ConnectorDetail from './connector-detail'
 import { IKitConfig } from '../lib/config'
 import { Connector } from '../lib/api/connector'
 import {
-  Connection,
+  ConnectionShell,
   getConnectionOrConnector
 } from '../lib/api/connection'
+import { hasOwnProperty } from '../lib/util'
 import { toaster } from './toaster'
 import {
   Pane,
@@ -26,12 +27,12 @@ interface ConnectorDetailRouteProps {
 
 interface ConnectorDetailRouteState {
   connector?: Connector,
-  connection?: Connection,
+  connection?: ConnectionShell,
   loading: boolean
 }
 
 class ConnectorDetailRoute extends React.Component<ConfigConsumer<ConnectorDetailRouteProps>, ConnectorDetailRouteState> {
-  constructor (props: ConnectorDetailRouteProps) {
+  constructor (props: ConfigConsumer<ConnectorDetailRouteProps>) {
     super(props)
     this.state = {
       loading: true
@@ -47,7 +48,7 @@ class ConnectorDetailRoute extends React.Component<ConfigConsumer<ConnectorDetai
     this.setState({ loading: true })
     try {
       const connection = await callWithConfig(config => getConnectionOrConnector(config, slug))
-      if (connection.enabled != null) {
+      if (hasOwnProperty(connection, 'enabled') && connection.enabled != null) {
         this.setState({ connection: connection })
       }
       this.setState({ connector: connection.connector })

@@ -34,7 +34,7 @@ interface HomeState {
 }
 
 class Home extends React.Component<ConfigConsumer<HomeProps>, HomeState> {
-  constructor (props) {
+  constructor (props: ConfigConsumer<HomeProps>) {
     super(props)
     this.state = {
       loading: true
@@ -50,7 +50,7 @@ class Home extends React.Component<ConfigConsumer<HomeProps>, HomeState> {
     }
   }
 
-  componentDidUpdate (prevProps): void {
+  componentDidUpdate (prevProps: ConfigConsumer<HomeProps>): void {
     if ((!prevProps.config || !prevProps.config.domain) && (this.props.config && this.props.config.domain)) {
       this.loadPlatform()
     }

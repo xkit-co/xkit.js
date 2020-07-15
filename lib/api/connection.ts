@@ -10,7 +10,8 @@ export interface Connection {
 }
 
 export interface ConnectionShell {
-  connector: Connector
+  connector: Connector,
+  enabled?: boolean | null
 }
 
 export async function getConnection(config: AuthorizedConfig, connectorSlug: string): Promise<Connection> {

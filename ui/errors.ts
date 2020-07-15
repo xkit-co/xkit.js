@@ -1,3 +1,5 @@
+import { hasOwnProperty } from '../lib/util'
+
 const INTERNAL_ERROR = "We encountered an unexpected error during installation"
 
 const FRIENDLY_ERRORS = Object.freeze({
@@ -12,7 +14,7 @@ const FRIENDLY_ERRORS = Object.freeze({
 })
 
 export function friendlyMessage(internalMessage: string): string {
-  if (FRIENDLY_ERRORS[internalMessage]) {
+  if (hasOwnProperty(FRIENDLY_ERRORS, internalMessage)) {
     return FRIENDLY_ERRORS[internalMessage]
   }
   return internalMessage
