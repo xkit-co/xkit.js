@@ -3,28 +3,39 @@ import * as ReactDOM from 'react-dom'
 import ConnectorDetail from './connector-detail'
 import { IKitConfig } from '../lib/config'
 import { Connector } from '../lib/api/connector'
-import { Connection, getConnectionOrConnector } from '../lib/api/connection'
+import {
+  Connection,
+  getConnectionOrConnector
+} from '../lib/api/connection'
 import { toaster } from './toaster'
-import { Pane, Spinner } from 'evergreen-ui'
+import {
+  Pane,
+  Spinner
+} from 'evergreen-ui'
 import {
   withConfig,
   ConfigConsumer,
   callWithConfig
 } from './config-wrapper'
+import { Redirect } from 'react-router-dom'
 
 interface ConnectorDetailRouteProps {
-  slug: string
+  slug: string,
+  url: string
 }
 
 interface ConnectorDetailRouteState {
   connector?: Connector,
-  connection?: Connection
+  connection?: Connection,
+  loading: boolean
 }
 
 class ConnectorDetailRoute extends React.Component<ConfigConsumer<ConnectorDetailRouteProps>, ConnectorDetailRouteState> {
   constructor (props: ConnectorDetailRouteProps) {
     super(props)
-    this.state = {}
+    this.state = {
+      loading: true
+    }
   }
 
   componentDidMount () {
@@ -33,6 +44,7 @@ class ConnectorDetailRoute extends React.Component<ConfigConsumer<ConnectorDetai
 
   async loadConnector (): Promise<void> {
     const { slug } = this.props
+    this.setState({ loading: true })
     try {
       const connection = await callWithConfig(config => getConnectionOrConnector(config, slug))
       if (connection.enabled != null) {
@@ -41,17 +53,29 @@ class ConnectorDetailRoute extends React.Component<ConfigConsumer<ConnectorDetai
       this.setState({ connector: connection.connector })
     } catch (e) {
       toaster.danger(`Error while loading connector: ${e.message}`)
+    } finally {
+      this.setState({ loading: false })
     }
   }
 
   render (): React.Element {
-    const { connector, connection } = this.state
-    if (!connector) {
+    const {
+      loading,
+      connector,
+      connection
+    } = this.state
+    if (loading) {
       return (
         <Pane display="flex" alignItems="center" justifyContent="center" height={150}>
           <Spinner />
         </Pane>
       )
+    }
+
+    if (!connector) {
+      const { url, slug } = this.props
+      const parentUrl = url.slice(0, -1 * slug.length)
+      return <Redirect to={parentUrl} />
     }
     
     return (

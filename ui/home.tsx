@@ -127,6 +127,7 @@ class Home extends React.Component<ConfigConsumer<HomeProps>, HomeState> {
             render={({ match }: RouteComponentProps<{slug: string}>) => {
               return (
                 <ConnectorDetailRoute
+                  url={match.url}
                   slug={match.params.slug}
                 />
               )
