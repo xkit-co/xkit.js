@@ -44,7 +44,7 @@ function getState(): ConfigWrapperState {
   return Object.assign({}, state)
 }
 
-export async function callWithConfig(fn: Function): Promise<void> {
+export async function callWithConfig(fn: (AuthorizedConfig) => Promise<T>): Promise<T> {
   const {
     token,
     domain,
@@ -71,15 +71,17 @@ export async function callWithConfig(fn: Function): Promise<void> {
         return
       }
 
-      const res = await fn({ ...getState() })
+      const { domain, token } = getState()
+
+      const res = await fn({ domain, token })
       return res
     }
     throw e
   }
 }
  
-export function withConfig(WrappedComponent: React.Component) {
-  class WithConfig extends React.Component {
+export function withConfig<Props extends {}>(WrappedComponent: React.ComponentType<Props>): React.Component<Props, ConfigWrapperState> {
+  class WithConfig extends React.Component<Props, ConfigWrapperState> {
     constructor (props) {
       super(props)
       this.state = getState()
@@ -108,7 +110,7 @@ export function withConfig(WrappedComponent: React.Component) {
         <WrappedComponent
           config={{ token, domain } as AuthorizedConfig}
           configLoading={loading}
-          {...this.props}
+          {...this.props as Props}
         />
       )
     }

@@ -46,6 +46,7 @@ function bindConfig<T>(config: IKitConfig, fn: (...args: unknown[]) => Promise<T
 }
 
 export interface XkitJs {
+  domain: string,
   url: string,
   connectorUrl: (slug: string) => string,
   getAccessToken: () => Promise<string>,
@@ -60,6 +61,7 @@ function xkit(domain: string): XkitJs {
   const config: IKitConfig = { domain }
 
   return {
+    domain,
     url: `${window.location.protocol}//${domain}`,
     connectorUrl: (slug: string) => `${window.location.protocol}//${config.domain}${connectorPath(slug)}`,
     getAccessToken: bindConfig(config, getAccessToken),

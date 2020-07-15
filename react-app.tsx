@@ -2,6 +2,17 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import App from './ui/app'
 import { login } from './lib/api/session'
+import { XkitJs } from './index'
+
+declare global {
+  interface Window {
+    xkit?: XkitJs
+  }
+}
+
+function isRouterType (type: string | undefined): type is 'memory' | 'hash' | 'browser' {
+  return ['memory', 'hash', 'browser'].includes(type)
+}
 
 const domRoot = document.getElementById('xkit-app')
 
@@ -26,7 +37,7 @@ if (domRoot) {
         domain={domain}
         token={token}
         rootPath={rootPath}
-        routerType={routerType}
+        routerType={isRouterType(routerType) ? routerType : undefined}
         title={title}
         hideTitle={hideTitle}
         loginRedirect={loginRedirect}
@@ -37,7 +48,7 @@ if (domRoot) {
     if (token) {
       const doLogin = async () => {
         try {
-          await login({ domain, token })
+          await login({ domain }, token)
         } catch (e) {
           console.debug(`Pre-emptive login failed: ${e.message}`)
           console.debug(e)

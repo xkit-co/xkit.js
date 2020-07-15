@@ -1,7 +1,7 @@
 // Safari polyfill
 import { EventTarget as EventTargetShim } from 'event-target-shim'
 
-type EventCallback = (unknown) => void
+type EventCallback = (payload: unknown) => void
 // Namespace listeners by event type
 type ListenerTypes = Map<string, Listeners>
 // Maps user-supplied listeners with listeners supplied to EventTarget
@@ -37,7 +37,7 @@ class Emitter {
     if (listeners.has(fn)) {
       throw new Error('Can not use the same function for the same type of event more than once.')
     }
-    const listener = (event) => {
+    const listener = (event: CustomEvent) => {
       if (event.type === type) {
         fn(event.detail)
       }

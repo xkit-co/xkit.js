@@ -7,7 +7,6 @@ import {
 } from 'evergreen-ui'
 import {
   Route,
-  Router,
   BrowserRouter,
   HashRouter,
   MemoryRouter
@@ -40,7 +39,7 @@ class App extends React.Component<AppProps, {}> {
     routerType: 'browser'
   }
 
-  Router: Router
+  Router: typeof BrowserRouter | typeof HashRouter | typeof MemoryRouter
 
   constructor (props: AppProps) {
     super(props)

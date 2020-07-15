@@ -9,7 +9,7 @@ interface CatalogThumbProps {
   connector: Connector
 }
 
-class CatalogThumb extends React.Component<CatalogThumbProps, {}> {
+class CatalogThumb extends React.Component<CatalogThumbProps> {
   renderStatus () {
     const { connection } = this.props.connector
 
