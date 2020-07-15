@@ -80,7 +80,7 @@ export async function callWithConfig(fn: (AuthorizedConfig) => Promise<T>): Prom
   }
 }
  
-export function withConfig<Props extends {}>(WrappedComponent: React.ComponentType<Props>): React.Component<Props, ConfigWrapperState> {
+export function withConfig<Props extends {}>(WrappedComponent: React.ComponentType<Props>): React.ComponentType<Props, ConfigWrapperState> {
   class WithConfig extends React.Component<Props, ConfigWrapperState> {
     constructor (props) {
       super(props)
@@ -99,7 +99,7 @@ export function withConfig<Props extends {}>(WrappedComponent: React.ComponentTy
       }
     }
 
-    render (): React.Element {
+    render (): React.ReactElement {
       const {
         token,
         domain,
@@ -215,7 +215,7 @@ export class ConfigWrapper extends React.Component<ConfigWrapperProps, ConfigWra
     }
   }
 
-  render (): React.Element {
+  render (): React.ReactElement {
     return this.props.children
   }
 }

@@ -101,7 +101,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
   }
 
 
-  renderAction (): React.Element {
+  renderAction (): React.ReactElement {
     const { loading, connection } = this.state
 
     if (!connection || !connection.enabled) {
@@ -137,7 +137,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     )
   }
 
-  renderBadge (): React.Element {
+  renderBadge (): React.ReactElement {
     const { connection } = this.state
 
     if (!connection || !connection.enabled) {
@@ -156,7 +156,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     return <Badge color="yellow">Not Connected</Badge>
   }
 
-  renderAuthAlert (): React.Element {
+  renderAuthAlert (): React.ReactElement {
     const { connector } = this.props
     const { connection, reconnectLoading } = this.state
     if (!connection || !connection.enabled) {
@@ -196,7 +196,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     )
   }
 
-  renderDescription (): React.Element {
+  renderDescription (): React.ReactElement {
     const { connector } = this.props
 
     if (!connector.description) {
@@ -214,7 +214,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     )
   }
 
-  render (): React.Element {
+  render (): React.ReactElement {
     const { connector } = this.props
     const { name, short_description, mark_url } = connector
     const { connection } = this.state

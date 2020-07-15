@@ -58,7 +58,7 @@ class ConnectorDetailRoute extends React.Component<ConfigConsumer<ConnectorDetai
     }
   }
 
-  render (): React.Element {
+  render (): React.ReactElement {
     const {
       loading,
       connector,

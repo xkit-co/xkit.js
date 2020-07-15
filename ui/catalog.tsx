@@ -118,8 +118,6 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
         <CatalogThumb
           connector={connector}
           key={connector.slug}
-          linkTo={this.props.linkTo}
-          navigateTo={this.props.navigateTo}
         />
       )
     })
@@ -134,7 +132,7 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
           placeholder="Search integrations..."
           height={majorScale(6)}
           width="100%"
-          onChange={e => this.setState({ search: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.setState({ search: e.target.value })}
           value={search}
         />
         <Pane
@@ -154,11 +152,10 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
 }
 
 interface EmptyCatalogProps {
-  background?: Colors.background,
-  children: React.ReactNode
+  background?: keyof typeof Colors.background
 }
 
-function EmptyCatalog ({ background, children } : EmptyCatalogProps): React.Element {
+const EmptyCatalog: React.FC<EmptyCatalogProps> = ({ background, children }): React.ReactElement => {
   return (
     <Card
       flexGrow={1}

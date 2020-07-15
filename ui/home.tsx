@@ -97,7 +97,7 @@ class Home extends React.Component<ConfigConsumer<HomeProps>, HomeState> {
     return 'Loading...'
   }
 
-  render (): React.Element {
+  render (): React.ReactElement {
     const {
       title,
       hideTitle,

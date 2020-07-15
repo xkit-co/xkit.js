@@ -98,7 +98,7 @@ const PROCESSORS: Processors = {
 }
 
 // Credit: https://github.com/fernandopasik/react-children-utilities/blob/master/src/lib/onlyText.ts
-function childToString(child?: React.Element | boolean | {} | null): string {
+function childToString(child?: React.ReactElement | boolean | {} | null): string {
   if (child == null) {
     return ''
   }
@@ -112,7 +112,7 @@ function childToString(child?: React.Element | boolean | {} | null): string {
   return (child as string | number).toString()
 }
 
-function childrenToText(children?: React.Element): string {
+function childrenToText(children?: React.ReactElement): string {
   if (!(children instanceof Array) && !React.isValidElement(children)) {
     return childToString(children)
   }
@@ -132,7 +132,7 @@ function childrenToText(children?: React.Element): string {
 interface MarkdownProps {
   text?: string,
   size?: Sizes,
-  children: React.Element
+  children: React.ReactElement
 }
 
 export default class Markdown extends React.Component<MarkdownProps> {
@@ -150,7 +150,7 @@ You have provided both. The \`children\` will be ignored and only the \`text\` w
     }
   }
 
-  render(): React.Element {
+  render(): React.ReactElement {
     const { text, children, size } = this.props
     const markdownSrc = text ? text : childrenToText(children)
     const processor = PROCESSORS[size]
