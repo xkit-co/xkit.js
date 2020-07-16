@@ -18,10 +18,14 @@ import {
 import { ConfigWrapper } from './config-wrapper'
 import Home from './home'
 
-type routerTypes = 'browser' | 'hash' | 'memory'
+type routerType = 'browser' | 'hash' | 'memory'
+
+export function isRouterType (type: string | undefined): type is routerType {
+  return ['memory', 'hash', 'browser'].includes(type)
+}
 
 interface RouterProps {
-  type: routerTypes,
+  type: routerType,
   basename: string
 }
 
@@ -48,7 +52,7 @@ interface AppProps {
   hideTitle?: boolean,
   title?: string,
   rootPath?: string,
-  routerType?: routerTypes,
+  routerType?: routerType,
   inheritRouter?: boolean,
   token?: string,
   loginRedirect?: string

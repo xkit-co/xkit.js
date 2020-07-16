@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import App from './ui/app'
+import App, { isRouterType } from './ui/app'
 import { login } from './lib/api/session'
+import { domReady } from './lib/util'
 import { XkitJs } from './index'
 
 declare global {
@@ -10,15 +11,15 @@ declare global {
   }
 }
 
-function isRouterType (type: string | undefined): type is 'memory' | 'hash' | 'browser' {
-  return ['memory', 'hash', 'browser'].includes(type)
-}
+domReady(document, () => {
+  const domRoot = document.getElementById('xkit-app')
 
-const domRoot = document.getElementById('xkit-app')
+  // If the domRoot doesn't exist, we're probably not on the right page and we can skip rendering
+  if (!domRoot) {
+    return
+  }
 
-// If the domRoot doesn't exist, we're probably not on the right page and we can skip rendering
-if (domRoot) {
-  const xkitDomain = window.xkit && window.xkit.domain ? window.xkit.domain : null
+  const xkitDomain = (window.xkit && window.xkit.domain) ? window.xkit.domain : null
   const domain = domRoot.dataset.domain || xkitDomain || `${window.location.host}`
   const token = domRoot.dataset.token
   const rootPath = domRoot.dataset.path
@@ -57,4 +58,4 @@ if (domRoot) {
       doLogin()
     }
   }
-}
+})

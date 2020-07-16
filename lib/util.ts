@@ -39,3 +39,15 @@ export function hasOwnProperty<X extends {}, Y extends PropertyKey>
   (obj: X, prop: Y): obj is X & Record<Y, unknown> {
   return obj.hasOwnProperty(prop)
 }
+
+export function domReady (document, fn) {
+  if (document.readyState !== 'loading') {
+    fn()
+    return
+  }
+  const listener = () => {
+    fn()
+    document.removeEventListener('DOMContentLoaded', listener)
+  }
+  document.addEventListener('DOMContentLoaded', listener)
+}
