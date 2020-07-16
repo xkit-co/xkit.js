@@ -8,8 +8,9 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "parcel watch index.ts browser.ts react-app.tsx",
-    "build": "parcel build --no-cache index.ts browser.ts react-app.tsx",
-    "test": "tsc --noEmit"
+    "build": "npm test && parcel build --no-cache index.ts browser.ts react-app.tsx",
+    "test": "tsc --noEmit",
+    "prepublish": "rm -rf dist && tsc --emitDeclarationOnly --declaration --declarationDir dist && parcel build --no-cache index.ts"
   },
   "author": "Xkit <dev@xkit.co>",
   "license": "MIT",

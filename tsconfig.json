@@ -6,6 +6,7 @@
     "noImplicitAny": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext", "ScriptHost"],
     "target": "es5",
-    "allowJs": false
+    "allowJs": false,
+    "skipLibCheck": true
   }
 }
