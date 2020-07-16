@@ -40,7 +40,7 @@ export function hasOwnProperty<X extends {}, Y extends PropertyKey>
   return obj.hasOwnProperty(prop)
 }
 
-export function domReady (document, fn) {
+export function domReady (document: Document, fn: Function) {
   if (document.readyState !== 'loading') {
     fn()
     return
