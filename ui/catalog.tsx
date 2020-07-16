@@ -28,53 +28,48 @@ import {
   withConfig,
   callWithConfig
 } from './config-wrapper'
+import { theme } from './theme'
+
+interface CatalogProps {
+  platform: Platform
+}
 
 interface CatalogState {
   connectors: Connector[]
-  loaded: boolean,
-  search: string,
-  platform?: Platform
+  loading: boolean,
+  search: string
 }
 
 const SIMILARITY_MIN = 0.75
 
-class Catalog extends React.Component<ConfigConsumer, CatalogState> {
-  constructor (props: ConfigConsumer) {
+class Catalog extends React.Component<ConfigConsumer<CatalogProps>, CatalogState> {
+  constructor (props: ConfigConsumer<CatalogProps>) {
     super(props)
     this.state = {
       connectors: [],
-      loaded: false,
+      loading: true,
       search: ""
     }
   }
 
   componentDidMount () {
     this.loadConnectors()
-    this.loadPlatform()
   }
 
   async loadConnectors (): Promise<void> {
+    this.setState({ loading: true })
     try {
       const connectors = await callWithConfig(config => listConnectors(config))
       this.setState({ connectors })
     } catch (e) {
       toaster.danger(`Error while loading connectors: ${e.message}`)
     } finally {
-      this.setState({ loaded: true })
-    }
-  }
-
-  async loadPlatform (): Promise<void> {
-    try {
-      const platform = await callWithConfig(getPlatform)
-      this.setState({ platform })
-    } catch (e) {
-      console.debug(`Failed to load platform`, e)
+      this.setState({ loading: false })
     }
   }
 
   renderBackButton () {
-    const { platform } = this.state
+    const { platform } = this.props
     if (!platform || !platform.website) return
 
     return (
@@ -85,8 +80,8 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
   }
 
   renderConnectors () {
-    const { connectors, loaded, search } = this.state
-    if (!loaded) {
+    const { connectors, loading, search } = this.state
+    if (loading) {
       return (
         <EmptyCatalog>
           <Spinner margin="auto" />
@@ -118,8 +113,6 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
         <CatalogThumb
           connector={connector}
           key={connector.slug}
-          linkTo={this.props.linkTo}
-          navigateTo={this.props.navigateTo}
         />
       )
     })
@@ -134,7 +127,7 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
           placeholder="Search integrations..."
           height={majorScale(6)}
           width="100%"
-          onChange={e => this.setState({ search: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.setState({ search: e.target.value })}
           value={search}
         />
         <Pane
@@ -154,15 +147,15 @@ class Catalog extends React.Component<ConfigConsumer, CatalogState> {
 }
 
 interface EmptyCatalogProps {
-  background?: Colors.background,
-  children: React.ReactNode
+  background?: keyof Colors['background']
 }
 
-function EmptyCatalog ({ background, children } : EmptyCatalogProps): React.Element {
+const EmptyCatalog: React.FC<EmptyCatalogProps> = ({ background, children }): React.ReactElement => {
   return (
     <Card
       flexGrow={1}
       marginRight={majorScale(3)}
+      marginBottom={majorScale(3)}
       background={background}
       padding={majorScale(2)}
       height={150}

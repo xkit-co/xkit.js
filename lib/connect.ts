@@ -1,6 +1,10 @@
 import { AuthorizedConfig } from './config'
 import { Connector } from './api/connector'
-import { createConnection, getConnection, Connection } from './api/connection'
+import {
+  createConnection,
+  getConnection,
+  Connection
+} from './api/connection'
 import { createAuthorization } from './api/authorization'
 import { authorize, AuthWindow } from './authorize'
 

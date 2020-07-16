@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import {
-  ThemeProvider,
   Pane,
   majorScale
 } from 'evergreen-ui'
@@ -12,22 +11,44 @@ import {
   MemoryRouter
 } from 'react-router-dom'
 import { toaster } from './toaster'
-import { theme } from './theme'
+import {
+  theme,
+  ThemeProvider
+} from './theme'
 import { ConfigWrapper } from './config-wrapper'
 import Home from './home'
 
-const Routers = Object.freeze({
-  'browser': BrowserRouter,
-  'hash': HashRouter,
-  'memory': MemoryRouter
-})
+type routerTypes = 'browser' | 'hash' | 'memory'
+
+interface RouterProps {
+  type: routerTypes,
+  basename: string
+}
+
+const Router: React.FC<RouterProps> = ({ type, basename, children }) => {
+  if (type === 'memory') {
+    return (
+      <MemoryRouter>{children}</MemoryRouter>
+    )
+  }
+
+  if (type === 'browser') {
+    return (
+      <BrowserRouter basename={basename}>{children}</BrowserRouter>
+    )
+  }
+
+  return (
+    <HashRouter basename={basename}>{children}</HashRouter>
+  )
+}
 
 interface AppProps {
   domain: string,
   hideTitle?: boolean,
   title?: string,
   rootPath?: string,
-  routerType?: 'browser' | 'hash' | 'memory',
+  routerType?: routerTypes,
   inheritRouter?: boolean,
   token?: string,
   loginRedirect?: string
@@ -39,12 +60,8 @@ class App extends React.Component<AppProps, {}> {
     routerType: 'browser'
   }
 
-  Router: typeof BrowserRouter | typeof HashRouter | typeof MemoryRouter
-
   constructor (props: AppProps) {
     super(props)
-
-    this.Router = Routers[this.props.routerType]
     this.state = {}
   }
 
@@ -77,15 +94,14 @@ class App extends React.Component<AppProps, {}> {
   }
 
   render () {
-    const Router = this.Router
-    const { rootPath, inheritRouter } = this.props
+    const { routerType, rootPath, inheritRouter } = this.props
 
     if (inheritRouter) {
       return this.renderApp()
     }
 
     return (
-      <Router basename={rootPath}>
+      <Router basename={rootPath} type={routerType}>
         {this.renderApp()}
       </Router>
     )

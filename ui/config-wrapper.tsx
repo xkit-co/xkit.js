@@ -14,11 +14,11 @@ import {
 } from '../lib/api/platform'
 import { toaster } from './toaster'
 
-function getDisplayName(WrappedComponent) {
+function getDisplayName(WrappedComponent: React.ComponentType) {
   return WrappedComponent.displayName || WrappedComponent.name || 'Component';
 }
 
-export interface ConfigConsumer<T = {}> extends T {
+export type ConfigConsumer<T = {}> = T & {
   config: AuthorizedConfig,
   configLoading: boolean
 }
@@ -44,7 +44,7 @@ function getState(): ConfigWrapperState {
   return Object.assign({}, state)
 }
 
-export async function callWithConfig(fn: (AuthorizedConfig) => Promise<T>): Promise<T> {
+export async function callWithConfig<T>(fn: (config: AuthorizedConfig) => Promise<T>): Promise<T> {
   const {
     token,
     domain,
@@ -67,22 +67,24 @@ export async function callWithConfig(fn: (AuthorizedConfig) => Promise<T>): Prom
           toaster.danger('We encountered an unexpected error. Please report this issue.')
           return
         }
-        window.location = loginRedirect
+        window.location.href = loginRedirect
         return
       }
 
-      const { domain, token } = getState()
+      const newState = getState()
 
-      const res = await fn({ domain, token })
+      const res = await fn({ domain: newState.domain, token: newState.token })
       return res
     }
     throw e
   }
 }
  
-export function withConfig<Props extends {}>(WrappedComponent: React.ComponentType<Props>): React.Component<Props, ConfigWrapperState> {
-  class WithConfig extends React.Component<Props, ConfigWrapperState> {
-    constructor (props) {
+export function withConfig<Props extends {}>(WrappedComponent: React.ComponentType<Props>): React.ComponentType<Omit<Props, keyof ConfigConsumer>> {
+  class WithConfig extends React.Component<Omit<Props, keyof ConfigConsumer>, ConfigWrapperState> {
+    static displayName: string
+
+    constructor (props: Props) {
       super(props)
       this.state = getState()
     }
@@ -99,7 +101,7 @@ export function withConfig<Props extends {}>(WrappedComponent: React.ComponentTy
       }
     }
 
-    render (): React.Element {
+    render (): React.ReactElement {
       const {
         token,
         domain,
@@ -126,7 +128,7 @@ interface ConfigWrapperProps extends IKitConfig {
 }
 
 export class ConfigWrapper extends React.Component<ConfigWrapperProps, ConfigWrapperState> {
-  constructor (props) {
+  constructor (props: ConfigWrapperProps) {
     super(props)
     setState({
       domain: this.props.domain,
@@ -148,7 +150,7 @@ export class ConfigWrapper extends React.Component<ConfigWrapperProps, ConfigWra
     }
   }
 
-  componentDidUpdate (prevProps): void {
+  componentDidUpdate (prevProps: ConfigWrapperProps): void {
     if (prevProps.domain !== this.props.domain) {
       setState({ domain: this.props.domain })
       this.initializeConfig()
@@ -215,7 +217,7 @@ export class ConfigWrapper extends React.Component<ConfigWrapperProps, ConfigWra
     }
   }
 
-  render (): React.Element {
+  render (): React.ReactNode {
     return this.props.children
   }
 }

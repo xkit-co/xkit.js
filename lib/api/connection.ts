@@ -2,6 +2,7 @@ import { AuthorizedConfig } from '../config'
 import { request, IKitAPIError } from './request'
 import { Connector, getConnector } from './connector'
 import { Authorization } from './authorization'
+import { hasOwnProperty } from '../util'
 
 export interface Connection {
   enabled: boolean,
@@ -11,6 +12,10 @@ export interface Connection {
 
 export interface ConnectionShell {
   connector: Connector
+}
+
+export function isConnection(conn: Connection | ConnectionShell | undefined): conn is Connection {
+  return conn && hasOwnProperty(conn, 'enabled') && conn.enabled != null
 }
 
 export async function getConnection(config: AuthorizedConfig, connectorSlug: string): Promise<Connection> {

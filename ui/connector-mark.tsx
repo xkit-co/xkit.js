@@ -7,7 +7,7 @@ interface ConnectorMarkProps {
 }
 
 class ConnectorMark extends React.Component<ConnectorMarkProps, {}> {
-  render (): React.Element {
+  render (): React.ReactElement {
     const { markUrl, size } = this.props
     return (
       <img src={markUrl} height={size} width={size} style={{borderRadius: '5px'}} />

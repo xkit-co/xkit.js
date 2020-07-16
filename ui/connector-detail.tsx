@@ -14,11 +14,16 @@ import {
   minorScale
 } from 'evergreen-ui'
 import { Link } from 'react-router-dom'
-import { config } from '../lib/config'
 import { Connector } from '../lib/api/connector'
-import { Connection, removeConnection } from '../lib/api/connection'
+import {
+  Connection,
+  removeConnection
+} from '../lib/api/connection'
 import { AuthorizationStatus } from '../lib/api/authorization'
-import { connect, reconnect } from '../lib/connect'
+import {
+  connect,
+  reconnect
+} from '../lib/connect'
 import { prepareAuthWindow } from '../lib/authorize'
 import { toaster } from './toaster'
 import Markdown from './markdown'
@@ -43,7 +48,7 @@ interface ConnectorDetailState {
 }
 
 class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProps>, ConnectorDetailState> {
-  constructor (props: ConnectorDetailProps) {
+  constructor (props: ConfigConsumer<ConnectorDetailProps>) {
     super(props)
 
     this.state = {
@@ -89,7 +94,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     try {
       this.setState({ reconnectLoading: true })
       const connection = await prepareAuthWindow(this.props.config, authWindow => {
-        callWithConfig(config => reconnect(config, authWindow, this.state.connection))
+        return callWithConfig(config => reconnect(config, authWindow, this.state.connection))
       })
       this.setState({ connection })
       toaster.success(`Reconnected to ${this.props.connector.name}`)
@@ -101,14 +106,14 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
   }
 
 
-  renderAction (): React.Element {
+  renderAction (): React.ReactElement {
     const { loading, connection } = this.state
 
     if (!connection || !connection.enabled) {
       return (
         <Pane>
           <Button
-            iconBefore={loading ? "" : "add"}
+            iconBefore={loading ? null : "add"}
             appearance="primary"
             marginTop={minorScale(1)}
             height={majorScale(5)}
@@ -124,7 +129,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     return (
       <Pane>
         <Button
-          iconBefore={loading ? "" : "trash"}
+          iconBefore={loading ? null : "trash"}
           marginLeft={majorScale(1)}
           marginTop={minorScale(1)}
           height={majorScale(5)}
@@ -137,7 +142,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     )
   }
 
-  renderBadge (): React.Element {
+  renderBadge (): React.ReactElement {
     const { connection } = this.state
 
     if (!connection || !connection.enabled) {
@@ -156,7 +161,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     return <Badge color="yellow">Not Connected</Badge>
   }
 
-  renderAuthAlert (): React.Element {
+  renderAuthAlert (): React.ReactElement {
     const { connector } = this.props
     const { connection, reconnectLoading } = this.state
     if (!connection || !connection.enabled) {
@@ -179,7 +184,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
             <Button
               float="right"
               appearance="primary"
-              iconBefore={reconnectLoading ? "" : "refresh"}
+              iconBefore={reconnectLoading ? null : "refresh"}
               isLoading={reconnectLoading}
               height={majorScale(4)}
               onClick={this.handleReconnect}
@@ -196,7 +201,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     )
   }
 
-  renderDescription (): React.Element {
+  renderDescription (): React.ReactElement {
     const { connector } = this.props
 
     if (!connector.description) {
@@ -214,7 +219,7 @@ class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProp
     )
   }
 
-  render (): React.Element {
+  render (): React.ReactElement {
     const { connector } = this.props
     const { name, short_description, mark_url } = connector
     const { connection } = this.state
