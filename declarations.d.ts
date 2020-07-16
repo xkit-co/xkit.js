@@ -25,5 +25,5 @@ declare module 'remark-react' {
 
   function remark2react<P> (this: Processor<P>, settings_0: options): Transformer
 
-  export = remark2react
+  export default remark2react
 }

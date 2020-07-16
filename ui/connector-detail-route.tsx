@@ -4,7 +4,8 @@ import ConnectorDetail from './connector-detail'
 import { IKitConfig } from '../lib/config'
 import { Connector } from '../lib/api/connector'
 import {
-  ConnectionShell,
+  Connection,
+  isConnection,
   getConnectionOrConnector
 } from '../lib/api/connection'
 import { hasOwnProperty } from '../lib/util'
@@ -27,7 +28,7 @@ interface ConnectorDetailRouteProps {
 
 interface ConnectorDetailRouteState {
   connector?: Connector,
-  connection?: ConnectionShell,
+  connection?: Connection,
   loading: boolean
 }
 
@@ -48,7 +49,7 @@ class ConnectorDetailRoute extends React.Component<ConfigConsumer<ConnectorDetai
     this.setState({ loading: true })
     try {
       const connection = await callWithConfig(config => getConnectionOrConnector(config, slug))
-      if (hasOwnProperty(connection, 'enabled') && connection.enabled != null) {
+      if (isConnection(connection)) {
         this.setState({ connection: connection })
       }
       this.setState({ connector: connection.connector })

@@ -13,8 +13,12 @@ const FRIENDLY_ERRORS = Object.freeze({
   'server_error': INTERNAL_ERROR
 })
 
+function isErrorKey (msg: string): msg is keyof typeof FRIENDLY_ERRORS {
+  return hasOwnProperty(FRIENDLY_ERRORS, msg)
+}
+
 export function friendlyMessage(internalMessage: string): string {
-  if (hasOwnProperty(FRIENDLY_ERRORS, internalMessage)) {
+  if (isErrorKey(internalMessage)) {
     return FRIENDLY_ERRORS[internalMessage]
   }
   return internalMessage

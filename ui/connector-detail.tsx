@@ -17,7 +17,6 @@ import { Link } from 'react-router-dom'
 import { Connector } from '../lib/api/connector'
 import {
   Connection,
-  ConnectionShell,
   removeConnection
 } from '../lib/api/connection'
 import { AuthorizationStatus } from '../lib/api/authorization'
@@ -39,13 +38,13 @@ import {
 
 interface ConnectorDetailProps {
   connector: Connector,
-  connection?: Connection | ConnectionShell
+  connection?: Connection
 }
 
 interface ConnectorDetailState {
   loading: boolean,
   reconnectLoading: boolean,
-  connection?: Connection | ConnectionShell
+  connection?: Connection
 }
 
 class ConnectorDetail extends React.Component<ConfigConsumer<ConnectorDetailProps>, ConnectorDetailState> {

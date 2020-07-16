@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom'
 import unified, { Processor, Plugin } from 'unified'
 import parse from 'remark-parse'
 import remark2react, { components as RemarkComponents } from 'remark-react'
-import { theme } from './theme'
+import { theme, ThemeProvider } from './theme'
 import {
   Pane,
   Heading,
@@ -15,8 +15,7 @@ import {
   Code,
   OrderedList,
   UnorderedList,
-  ListItem,
-  ThemeProvider
+  ListItem
 } from 'evergreen-ui'
 
 const mediumComponents: RemarkComponents = {
@@ -115,7 +114,7 @@ function childrenToText(children?: React.ReactNode): string {
 
 interface MarkdownProps {
   text?: string,
-  size?: keyof typeof Sizes | typeof Sizes
+  size?: keyof typeof Sizes
 }
 
 export default class Markdown extends React.Component<MarkdownProps> {
@@ -137,10 +136,13 @@ You have provided both. The \`children\` will be ignored and only the \`text\` w
     const { text, children, size } = this.props
     const markdownSrc = text ? text : childrenToText(children)
     const processor = PROCESSORS[size]
+    // type waiting on https://github.com/vfile/vfile/pull/53
+    // @ts-ignore
+    const contents = processor.processSync(markdownSrc).result
 
     return (
       <Pane>
-        {processor.processSync(markdownSrc).result}
+        {contents}
       </Pane>
     )
   }
