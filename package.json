@@ -35,7 +35,7 @@
     "react": "~16.9.0",
     "react-dom": "~16.9.0",
     "react-router-dom": "^5.2.0",
-    "remark-parse": "^8.0.2",
+    "remark-parse": "^8.0.3",
     "remark-react": "^7.0.1",
     "unified": "^9.0.0"
   }
