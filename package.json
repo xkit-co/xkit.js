@@ -1,6 +1,10 @@
 {
   "name": "@xkit/xkit.js",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xkit-co/xkit.js.git"
+  },
   "description": "",
   "files": [
     "dist"
@@ -11,7 +15,8 @@
     "build": "npm test && parcel build --no-cache index.ts browser.ts",
     "test": "tsc --noEmit",
     "prepublishOnly": "npm test",
-    "prepare": "rm -rf dist && tsc --emitDeclarationOnly --declaration --declarationDir dist && parcel build --no-cache index.ts"
+    "prepare": "rm -rf dist && tsc --emitDeclarationOnly --declaration --declarationDir dist && parcel build --no-cache index.ts",
+    "repo": "echo $npm_package_repository_url",
   },
   "author": "Xkit <dev@xkit.co>",
   "license": "MIT",
