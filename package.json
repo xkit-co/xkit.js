@@ -16,7 +16,7 @@
     "test": "tsc --noEmit",
     "prepublishOnly": "npm test",
     "prepare": "rm -rf dist && tsc --emitDeclarationOnly --declaration --declarationDir dist && parcel build --no-cache index.ts",
-    "repo": "echo $npm_package_repository_url",
+    "repo": "echo $npm_package_repository_url"
   },
   "author": "Xkit <dev@xkit.co>",
   "license": "MIT",
