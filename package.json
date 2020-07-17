@@ -10,6 +10,7 @@
     "dev": "parcel watch index.ts browser.ts",
     "build": "npm test && parcel build --no-cache index.ts browser.ts",
     "test": "tsc --noEmit",
+    "prepublishOnly": "npm test",
     "prepare": "rm -rf dist && tsc --emitDeclarationOnly --declaration --declarationDir dist && parcel build --no-cache index.ts"
   },
   "author": "Xkit <dev@xkit.co>",
