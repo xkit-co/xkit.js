@@ -7,15 +7,16 @@
   },
   "description": "",
   "files": [
-    "dist"
+    "lib"
   ],
-  "main": "dist/index.js",
+  "main": "lib/index.js",
+  "browser": "lib/browser.js",
   "scripts": {
-    "dev": "parcel watch index.ts browser.ts",
-    "build": "npm test && parcel build --no-cache index.ts browser.ts",
+    "dev": "parcel watch src/index.ts src/browser.ts",
+    "build": "npm test && parcel build --no-cache src/index.ts src/browser.ts",
     "test": "tsc --noEmit",
     "prepublishOnly": "npm test",
-    "prepare": "rm -rf dist && tsc --outDir dist --declaration",
+    "prepare": "rm -rf lib && tsc --outDir lib --declaration",
     "repo": "echo $npm_package_repository_url"
   },
   "author": "Xkit <dev@xkit.co>",

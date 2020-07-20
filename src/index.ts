@@ -1,17 +1,17 @@
-import { IKitConfig } from './lib/config'
-import { login, getAccessToken, logout } from './lib/api/session'
+import { IKitConfig } from './config'
+import { login, getAccessToken, logout } from './api/session'
 import {
   Connection,
   ConnectionShell,
   getConnection,
   getConnectionOrConnector,
   getConnectionToken
-} from './lib/api/connection'
+} from './api/connection'
 import {
   Connector,
   connectorPath
-} from './lib/api/connector'
-import { getPlatform } from './lib/api/platform'
+} from './api/connector'
+import { getPlatform } from './api/platform'
 
 function bindConfig<T>(config: IKitConfig, fn: (...args: unknown[]) => Promise<T>): (...args: unknown[]) => Promise<T> {
   return async function (...args: unknown[]): Promise<T> {
