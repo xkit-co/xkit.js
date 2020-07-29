@@ -1,4 +1,5 @@
 import { IKitConfig, AuthorizedConfig } from './config'
+import { configGetter } from './config-state'
 import {
   getAuthorization,
   Authorization,
@@ -80,6 +81,10 @@ async function onAuthWindowClose(authWindow: AuthWindow): Promise<void> {
 }
 
 export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWindowCallback<T>): Promise<T> {
+  if (!config.token) {
+    throw new Error('Unauthorized')
+  }
+
   const loadingUrl = `${popupHost(config)}${loadingPath()}`
 
   const ref = window.open(loadingUrl, windowName(), AUTH_POP_PARAMS)
@@ -94,6 +99,12 @@ export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWin
       ref.close()
     }
   }
+}
+
+export function prepareAuthWindowWithConfig<T>(callWithConfig: configGetter, callback: AuthWindowCallback<T>): Promise<T> {
+  return callWithConfig((config) => {
+    return prepareAuthWindow(config, callback)
+  })
 }
 
 async function loadAuthWindow(config: AuthorizedConfig, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
