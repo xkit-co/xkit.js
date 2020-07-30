@@ -46,8 +46,9 @@ class StateManager {
   }
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
+    const stateManager = this
     return function (...args: unknown[]): Promise<T> {
-      return this.callWithConfig((config: AuthorizedConfig) => fn(config, ...args))
+      return stateManager.callWithConfig((config: AuthorizedConfig) => fn(config, ...args))
     }
   }
 
