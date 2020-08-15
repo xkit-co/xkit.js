@@ -6,26 +6,38 @@ import {
   ConnectionShell,
   getConnection,
   getConnectionOrConnector,
-  getConnectionToken
+  getConnectionToken,
+  removeConnection
 } from './api/connection'
 import {
   Connector,
-  connectorPath
+  connectorPath,
+  listConnectors
 } from './api/connector'
-import { connect } from './connect'
-import { getPlatform } from './api/platform'
+import { connect, reconnect } from './connect'
+import {
+  Platform,
+  getPlatform
+} from './api/platform'
 
 export interface XkitJs {
   domain: string,
   url: string,
   connectorUrl: (slug: string) => string,
+  ready: (fn: Function) => void,
+  onUpdate: (fn: Function) => Function,
+  logout: () => Promise<void>
+  login: (token: string) => Promise<void>,
   getAccessToken: () => Promise<string>,
+  getPlatform: () => Promise<Platform>,
+  listConnectors: () => Promise<Connector[]>,
   getConnection: (slug: string) => Promise<Connection>,
   getConnectionOrConnector: (slug: string) => Promise<ConnectionShell>,
   getConnectionToken: (slug: string) => Promise<string | null>,
-  logout: () => Promise<void>
-  login: (token: string) => Promise<void>,
-  connect: (connector: Connector) => Promise<Connection>
+  removeConnection: (slug: string) => Promise<void>,
+  connect: (connector: Connector) => Promise<Connection>,
+  reconnect: (connection: Connection) => Promise<Connection>
+ 
 }
 
 function xkit(domain: string): XkitJs {
@@ -35,13 +47,19 @@ function xkit(domain: string): XkitJs {
     domain,
     url: `${window.location.protocol}//${domain}`,
     connectorUrl: (slug: string) => `${window.location.protocol}//${configState.getState().domain}${connectorPath(slug)}`,
+    ready: (fn: Function): void => fn(),
+    onUpdate: configState.onUpdate,
+    logout: configState.logout,
+    login: configState.login,
     getAccessToken: configState.retrieveToken,
+    getPlatform: configState.curryWithConfig(getPlatform),
+    listConnectors: configState.curryWithConfig(listConnectors),
     getConnection: configState.curryWithConfig(getConnection),
     getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector),
     getConnectionToken: configState.curryWithConfig(getConnectionToken),
-    logout: configState.logout,
-    login: configState.login,
-    connect: connect.bind(null, configState.callWithConfig)
+    removeConnection: configState.curryWithConfig(removeConnection),
+    connect: connect.bind(null, configState.callWithConfig),
+    reconnect: reconnect.bind(null, configState.callWithConfig)
   }
 }
 
