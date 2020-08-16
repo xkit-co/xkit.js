@@ -34,6 +34,9 @@ class StateManager {
         this.initializeConfig()
       }
     })
+    if (this.state.domain) {
+      this.initializeConfig()
+    }
   }
 
   onUpdate = (updateFn: Function): Function => {
@@ -149,12 +152,14 @@ class StateManager {
   }
 
   private async initializeConfig (): Promise<void> {
+    console.log('initializing config')
     this.setLoginRedirect()
     const { token } = this.getState()
     if (token) {
       this.login(token)
     } else {
       try {
+        console.log('falling back to refresh token')
         this.setState({ loading: true })
         await this.retrieveToken()
       } finally {
