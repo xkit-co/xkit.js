@@ -34,6 +34,17 @@ class StateManager {
         this.initializeConfig()
       }
     })
+    if (this.state.domain) {
+      this.initializeConfig()
+    }
+  }
+
+  onUpdate = (updateFn: Function): Function => {
+    const wrappedUpdateFn = (payload: unknown) => updateFn()
+    this.emitter.on('update', wrappedUpdateFn)
+    return () => {
+      this.emitter.off('update', wrappedUpdateFn)
+    }
   }
 
   setState = (newState: Partial<ConfigState>): void => {
