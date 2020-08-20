@@ -3,6 +3,7 @@ import { AuthorizedConfig } from '../config'
 import { assertToken } from './session'
 
 const SOCKET_ENDPOINT = '/socket'
+const SCHEME = process.env.NODE_ENV === 'production' ? 'wss:' : 'ws:'
 
 interface SocketParams {
   token: string
@@ -36,11 +37,8 @@ async function initializeSocket(config: AuthorizedConfig): Promise<UndocumentedS
     token: config.token
   }
 
-  // need to add protocol config
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-
   return new Promise((resolve, reject) => {
-    socket = new Socket(`${protocol}//${config.domain}${SOCKET_ENDPOINT}`, { params }) as UndocumentedSocket
+    socket = new Socket(`${SCHEME}//${config.domain}${SOCKET_ENDPOINT}`, { params }) as UndocumentedSocket
     let socketHasOpened = false
     socket.onOpen(() => {
       socketHasOpened = true
