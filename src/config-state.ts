@@ -160,6 +160,8 @@ class StateManager {
       try {
         this.setState({ loading: true })
         await this.retrieveToken()
+      } catch (e) {
+        console.debug(`User is not yet logged into Xkit.`, e)
       } finally {
         this.setState({ loading: false })
       }
