@@ -1,6 +1,7 @@
 import { IKitConfig } from '../config'
 
 const API_PATH = '/api/platform_user'
+const SCHEME = process.env.NODE_ENV === 'production' ? 'https:' : 'http:'
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
@@ -87,9 +88,8 @@ async function parseData(res: Response): Promise<UnknownJSON> {
 }
 
 export async function request(config: IKitConfig, options: RequestOptions): Promise<UnknownJSON> {
-  // need to add protocol configuration
   const res = await fetch(
-    `${window.location.protocol}//${config.domain}${API_PATH}${options.path}`,
+    `${SCHEME}//${config.domain}${API_PATH}${options.path}`,
     getFetchOptions(config, options)
   )
 
