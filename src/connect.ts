@@ -18,8 +18,9 @@ async function updateConnection(config: AuthorizedConfig, connection: Connection
   return newConnection
 }
 
-async function connectWithoutWindow (config: AuthorizedConfig, authWindow: AuthWindow, connector: Connector): Promise<Connection> {
-  const connection = await createConnection(config, connector.slug)
+async function connectWithoutWindow (config: AuthorizedConfig, authWindow: AuthWindow, connector: Connector | string): Promise<Connection> {
+  const slug = typeof connector === 'string' ? connector : connector.slug
+  const connection = await createConnection(config, slug)
   const authorization = await authorize(config, authWindow, connection.authorization)
   const newConnection = await updateConnection(config, connection)
   return newConnection
@@ -38,7 +39,7 @@ async function reconnectWithoutWindow (config: AuthorizedConfig, authWindow: Aut
   return newConnection
 }
 
-export async function connect (callWithConfig: configGetter, connector: Connector): Promise<Connection> {
+export async function connect (callWithConfig: configGetter, connector: Connector | string): Promise<Connection> {
   const connection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
     return callWithConfig(config => connectWithoutWindow(config, authWindow, connector))
   })

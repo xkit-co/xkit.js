@@ -35,7 +35,7 @@ export interface XkitJs {
   getConnectionOrConnector: (slug: string) => Promise<ConnectionShell>,
   getConnectionToken: (slug: string) => Promise<string | null>,
   removeConnection: (slug: string) => Promise<void>,
-  connect: (connector: Connector) => Promise<Connection>,
+  connect: (connector: Connector | string) => Promise<Connection>,
   reconnect: (connection: Connection) => Promise<Connection>
  
 }
