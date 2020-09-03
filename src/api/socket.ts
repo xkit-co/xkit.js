@@ -3,7 +3,9 @@ import { AuthorizedConfig } from '../config'
 import { assertToken } from './session'
 
 const SOCKET_ENDPOINT = '/socket'
-const SCHEME = process.env.NODE_ENV === 'production' ? 'wss:' : 'ws:'
+// Theoretically we can support http (or ws in this case) in development,
+// but with Cookie policies as they are, we are better off going all https (wss)
+const SCHEME = 'wss:'
 
 interface SocketParams {
   token: string

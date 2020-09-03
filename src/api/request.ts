@@ -1,7 +1,9 @@
 import { IKitConfig } from '../config'
 
 const API_PATH = '/api/platform_user'
-const SCHEME = process.env.NODE_ENV === 'production' ? 'https:' : 'http:'
+// Theoretically we can support http in development, but with Cookie policies
+// as they are, we are better off going all https
+const SCHEME = 'https:'
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
