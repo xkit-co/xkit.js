@@ -18,6 +18,10 @@ export interface ConfigState extends InitialConfigState {
 
 export type configGetter = <T>(fn: (config: AuthorizedConfig) => Promise<T>) => Promise<T>
 
+function isUnauthorized (e: Error): boolean {
+  return e.statusCode === 401 || e.message.toLowerCase() === 'unauthorized'
+}
+
 class StateManager {
   private state: ConfigState
   emitter: Emitter
@@ -56,14 +60,14 @@ class StateManager {
     return Object.assign({}, this.state)
   }
 
-  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
+  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>, fallbackFn?: () => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
     const stateManager = this
     return function (...args: unknown[]): Promise<T> {
       return stateManager.callWithConfig((config: AuthorizedConfig) => fn(config, ...args))
     }
   }
 
-  callWithConfig: configGetter = async <T>(fn: (config: AuthorizedConfig) => Promise<T>): Promise<T> => {
+  callWithConfig: configGetter = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: () => Promise<T>): Promise<T> => {
     const {
       token,
       domain,
@@ -74,12 +78,19 @@ class StateManager {
       const res = await fn({ domain, token })
       return res
     } catch (e) {
-      if (e.statusCode === 401 || e.message.toLowerCase() === 'unauthorized') {
+      if (isUnauthorized(e)) {
         try {
           const newToken = await this.retrieveToken()
         } catch (e) {
-          await this.redirect(e)
-          return
+          if (isUnauthorized(e)) {
+            if (fallbackFn) {
+              const res = await fallbackFn()
+              return res
+            }
+            await this.redirect(e)
+            return
+          }
+          throw e
         }
 
         const newState = this.getState()

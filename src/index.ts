@@ -12,7 +12,8 @@ import {
 import {
   Connector,
   connectorPath,
-  listConnectors
+  listConnectors,
+  listConnectorsPublic
 } from './api/connector'
 import { connect, reconnect } from './connect'
 import {
@@ -53,7 +54,7 @@ function xkit(domain: string): XkitJs {
     login: configState.login,
     getAccessToken: configState.retrieveToken,
     getPlatform: configState.curryWithConfig(getPlatform),
-    listConnectors: configState.curryWithConfig(listConnectors),
+    listConnectors: configState.curryWithConfig(listConnectors, listConnectorsPublic),
     getConnection: configState.curryWithConfig(getConnection),
     getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector),
     getConnectionToken: configState.curryWithConfig(getConnectionToken),
