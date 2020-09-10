@@ -6,6 +6,7 @@ import {
   ConnectionShell,
   getConnection,
   getConnectionOrConnector,
+  getConnectionPublic,
   getConnectionToken,
   removeConnection
 } from './api/connection'
@@ -56,7 +57,7 @@ function xkit(domain: string): XkitJs {
     getPlatform: configState.curryWithConfig(getPlatform),
     listConnectors: configState.curryWithConfig(listConnectors, listConnectorsPublic),
     getConnection: configState.curryWithConfig(getConnection),
-    getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector),
+    getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector, getConnectionPublic),
     getConnectionToken: configState.curryWithConfig(getConnectionToken),
     removeConnection: configState.curryWithConfig(removeConnection),
     connect: connect.bind(null, configState.callWithConfig),
