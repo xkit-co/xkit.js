@@ -1,4 +1,5 @@
 import { IKitConfig, AuthorizedConfig } from './config'
+import { IKitAPIError } from './api/request'
 import { getPlatform } from './api/platform'
 import {
   login,
@@ -17,6 +18,11 @@ export interface ConfigState extends InitialConfigState {
 }
 
 export type configGetter = <T>(fn: (config: AuthorizedConfig) => Promise<T>) => Promise<T>
+
+function isUnauthorized (e: Error): boolean {
+  return (e instanceof IKitAPIError && e.statusCode === 401) ||
+         e.message.toLowerCase() === 'unauthorized'
+}
 
 class StateManager {
   private state: ConfigState
@@ -56,37 +62,55 @@ class StateManager {
     return Object.assign({}, this.state)
   }
 
-  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
-    const stateManager = this
-    return function (...args: unknown[]): Promise<T> {
-      return stateManager.callWithConfig((config: AuthorizedConfig) => fn(config, ...args))
-    }
-  }
-
-  callWithConfig: configGetter = async <T>(fn: (config: AuthorizedConfig) => Promise<T>): Promise<T> => {
+  callWithConfig: configGetter = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
     const {
       token,
       domain,
       loginRedirect
     } = this.getState()
 
+    const fallback = async (e: Error): Promise<T> => {
+      if (isUnauthorized(e)) {
+        if (fallbackFn) {
+          const res = await fallbackFn({ domain: this.getState().domain })
+          return res
+        }
+        await this.redirect(e)
+      }
+      throw e
+    }
+
     try {
       const res = await fn({ domain, token })
       return res
     } catch (e) {
-      if (e.statusCode === 401 || e.message.toLowerCase() === 'unauthorized') {
+      if (isUnauthorized(e)) {
         try {
-          const newToken = await this.retrieveToken()
+          await this.retrieveToken()
         } catch (e) {
-          await this.redirect(e)
-          return
+          return fallback(e)
         }
 
         const newState = this.getState()
-        const res = await fn({ domain: newState.domain, token: newState.token })
-        return res
+        try {
+          const res = await fn({ domain: newState.domain, token: newState.token })
+          return res
+        } catch (e) {
+          return fallback(e)
+        }
       }
       throw e
+    }
+  }
+
+  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
+    const stateManager = this
+    return function (...args: unknown[]): Promise<T> {
+      const fns = [(config: AuthorizedConfig) => fn(config, ...args)]
+      if (fallbackFn) {
+        fns.push((config: IKitConfig) => fallbackFn(config, ...args))
+      }
+      return stateManager.callWithConfig.apply(stateManager, fns)
     }
   }
 
@@ -113,7 +137,7 @@ class StateManager {
       await login({ domain }, token)
       this.setState({ token })
     } catch (e) {
-      if (e.statusCode === 401) {
+      if (isUnauthorized(e)) {
         // token is expired, throw it away and
         // try to refresh
         await this.retrieveToken()
@@ -147,7 +171,12 @@ class StateManager {
     this.setState({ retrievingToken: tokenPromise })
 
     const token = await tokenPromise
-    this.setState({ token })
+    this.setState({
+      token,
+      // remove the promise, otherwise we'll always resolve
+      // to the same token
+      retrievingToken: undefined
+    })
     return token
   }
 

@@ -1,6 +1,6 @@
-import { AuthorizedConfig } from '../config'
+import { AuthorizedConfig, IKitConfig } from '../config'
 import { request, IKitAPIError } from './request'
-import { Connector, getConnector } from './connector'
+import { Connector, getConnector, getConnectorPublic } from './connector'
 import { Authorization } from './authorization'
 import { hasOwnProperty } from '../util'
 
@@ -33,12 +33,17 @@ export async function getConnectionOrConnector(config: AuthorizedConfig, connect
     const connection = await getConnection(config, connectorSlug)
     return connection
   } catch (e) {
-    if (e instanceof IKitAPIError && (e.statusCode === 404 || e.statusCode === 401)) {
+    if (e instanceof IKitAPIError && e.statusCode === 404) {
       const connector = await getConnector(config, connectorSlug)
       return { connector }
     }
     throw e
   }
+}
+
+export async function getConnectionPublic(config: IKitConfig, connectorSlug: string): Promise<ConnectionShell> {
+  const connector = await getConnectorPublic(config, connectorSlug)
+  return { connector }
 }
 
 export async function getConnectionToken(config: AuthorizedConfig, connectorSlug: string): Promise<string | null> {
@@ -48,7 +53,7 @@ export async function getConnectionToken(config: AuthorizedConfig, connectorSlug
       return connection.authorization.access_token
     }
   } catch (e) {
-    if (!(e instanceof IKitAPIError && (e.statusCode === 404 || e.statusCode === 401))) {
+    if (!(e instanceof IKitAPIError && e.statusCode === 404)) {
       throw e
     }
   }
