@@ -13,8 +13,9 @@
   "scripts": {
     "dev": "parcel watch src/index.ts src/browser.ts",
     "build": "npm test && parcel build --no-cache src/browser.ts",
+    "build-lib": "rm -rf lib && tsc --outDir lib --declaration",
+    "prepublishOnly": "npm run build-lib",
     "test": "tsc --noEmit",
-    "prepublishOnly": "rm -rf lib && tsc --outDir lib --declaration",
     "repo": "echo $npm_package_repository_url"
   },
   "author": "Xkit <dev@xkit.co>",

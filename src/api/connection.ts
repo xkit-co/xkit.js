@@ -1,7 +1,7 @@
 import { AuthorizedConfig, IKitConfig } from '../config'
 import { request, IKitAPIError } from './request'
 import { Connector, getConnector, getConnectorPublic } from './connector'
-import { Authorization } from './authorization'
+import { Authorization, AuthorizationStatus } from './authorization'
 import { hasOwnProperty } from '../util'
 
 export interface Connection {
@@ -14,8 +14,31 @@ export interface ConnectionShell {
   connector: Connector
 }
 
+export enum ConnectionStatus {
+  NotInstalled,
+  Error,
+  Connected
+}
+
 export function isConnection(conn: Connection | ConnectionShell | undefined): conn is Connection {
   return conn && hasOwnProperty(conn, 'enabled') && conn.enabled != null
+}
+
+export function connectionStatus(conn: Connection | ConnectionShell | undefined): ConnectionStatus {
+  if (!isConnection(conn)) {
+    return ConnectionStatus.NotInstalled
+  }
+
+  if (!conn.enabled) {
+    return ConnectionStatus.NotInstalled
+  }
+
+  const { authorization } = conn
+  if (authorization && authorization.status !== AuthorizationStatus.error) {
+    return ConnectionStatus.Connected
+  }
+
+  return ConnectionStatus.Error
 }
 
 export async function getConnection(config: AuthorizedConfig, connectorSlug: string): Promise<Connection> {
