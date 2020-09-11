@@ -60,32 +60,11 @@ export async function createAuthorization(config: AuthorizedConfig, prototypeSlu
   return authorization as Authorization
 }
 
-export async function getLatestAuthorization(config: AuthorizedConfig, prototypeSlug: string): Promise<Authorization> {
-  const {
-    authorization
-  } = await request(config, {
-    path: `/authorizations/${prototypeSlug}/latest`
-  })
-
-  return authorization as Authorization
-}
-
 export async function getAuthorization(config: AuthorizedConfig, prototypeSlug: string, authorizationId: string | number): Promise<Authorization> {
   const {
     authorization
   } = await request(config, {
     path: `/authorizations/${prototypeSlug}/${authorizationId}`
-  })
-
-  return authorization as Authorization
-}
-
-export async function refreshAuthorization(config: AuthorizedConfig, prototypeSlug: string, authorizationId: string | number): Promise<Authorization> {
-  const {
-    authorization
-  } = await request(config, {
-    path: `/authorizations/${prototypeSlug}/${authorizationId}/refresh`,
-    method: 'POST'
   })
 
   return authorization as Authorization
