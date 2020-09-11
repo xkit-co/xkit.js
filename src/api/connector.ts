@@ -1,5 +1,6 @@
 import { IKitConfig, AuthorizedConfig } from '../config'
 import { request } from './request'
+import { ConnectionOnly } from './connection'
 
 export interface PublicConnector {
   name: string,
@@ -11,9 +12,7 @@ export interface PublicConnector {
 }
 
 export interface Connector extends PublicConnector {
-  connection?: {
-    enabled: boolean
-  }
+  connection?: ConnectionOnly
 }
 
 export function connectorPath (slug: string): string {

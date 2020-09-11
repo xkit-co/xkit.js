@@ -4,10 +4,13 @@ import { Connector, getConnector, getConnectorPublic } from './connector'
 import { Authorization, AuthorizationStatus } from './authorization'
 import { hasOwnProperty } from '../util'
 
-export interface Connection {
+export interface ConnectionOnly {
   enabled: boolean,
-  connector: Connector,
   authorization?: Authorization
+}
+
+export interface Connection extends ConnectionOnly {
+  connector: Connector
 }
 
 export interface ConnectionShell {
@@ -20,11 +23,11 @@ export enum ConnectionStatus {
   Connected
 }
 
-export function isConnection(conn: Connection | ConnectionShell | undefined): conn is Connection {
+export function isConnection(conn: ConnectionOnly | ConnectionShell | undefined): conn is Connection {
   return conn && hasOwnProperty(conn, 'enabled') && conn.enabled != null
 }
 
-export function connectionStatus(conn: Connection | ConnectionShell | undefined): ConnectionStatus {
+export function connectionStatus(conn: ConnectionOnly | ConnectionShell | undefined): ConnectionStatus {
   if (!isConnection(conn)) {
     return ConnectionStatus.NotInstalled
   }
