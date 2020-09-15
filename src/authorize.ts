@@ -55,7 +55,7 @@ function windowName() {
 }
 
 function popupHost(config: IKitConfig): string {
-  return `${window.location.protocol}//${config.domain}`
+  return `https://${config.domain}`
 }
 
 function isAuthorizationReadyForSetup(auth: Authorization): auth is AuthorizationToBeSetup {
