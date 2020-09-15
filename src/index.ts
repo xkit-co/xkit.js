@@ -47,8 +47,8 @@ function xkit(domain: string): XkitJs {
 
   return {
     domain,
-    url: `${window.location.protocol}//${domain}`,
-    connectorUrl: (slug: string) => `${window.location.protocol}//${configState.getState().domain}${connectorPath(slug)}`,
+    url: `https://${domain}`,
+    connectorUrl: (slug: string) => `https://${configState.getState().domain}${connectorPath(slug)}`,
     ready: (fn: Function): void => fn(),
     onUpdate: configState.onUpdate,
     logout: configState.logout,
