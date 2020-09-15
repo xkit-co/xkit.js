@@ -60,6 +60,21 @@ export async function createAuthorization(config: AuthorizedConfig, prototypeSlu
   return authorization as Authorization
 }
 
+export async function setAuthorizationAPIKey(config: AuthorizedConfig, prototypeSlug: string, state: string, apiKey: string): Promise<Authorization> {
+  const {
+    authorization
+  } = await request(config, {
+    path: `/authorizations/${prototypeSlug}`,
+    method: 'PUT',
+    body: {
+      state,
+      api_key: apiKey
+    }
+  })
+
+  return authorization as Authorization
+}
+
 export async function getAuthorization(config: AuthorizedConfig, prototypeSlug: string, authorizationId: string | number): Promise<Authorization> {
   const {
     authorization
