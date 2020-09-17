@@ -16,6 +16,10 @@ import {
   listConnectors,
   listConnectorsPublic
 } from './api/connector'
+import {
+  setAuthorizationAPIKey,
+  Authorization
+} from './api/authorization'
 import { connect, reconnect } from './connect'
 import {
   Platform,
@@ -39,7 +43,7 @@ export interface XkitJs {
   removeConnection: (slug: string) => Promise<void>,
   connect: (connector: Connector | string) => Promise<Connection>,
   reconnect: (connection: Connection) => Promise<Connection>
- 
+  setAuthorizationAPIKey(slug: string, state: string, apiKey: string): Promise<Authorization>
 }
 
 function xkit(domain: string): XkitJs {
@@ -61,7 +65,8 @@ function xkit(domain: string): XkitJs {
     getConnectionToken: configState.curryWithConfig(getConnectionToken),
     removeConnection: configState.curryWithConfig(removeConnection),
     connect: connect.bind(null, configState.callWithConfig),
-    reconnect: reconnect.bind(null, configState.callWithConfig)
+    reconnect: reconnect.bind(null, configState.callWithConfig),
+    setAuthorizationAPIKey: configState.curryWithConfig(setAuthorizationAPIKey)
   }
 }
 
