@@ -9,7 +9,10 @@ type AuthorizeUrl = string
 
 interface AuthorizerPrototype {
   name: string,
-  slug: string
+  slug: string,
+  api_key_video_url?: string,
+  api_key_instructions?: string,
+  api_key_label?: string
 }
 
 interface Authorizer {
