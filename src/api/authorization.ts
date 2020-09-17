@@ -3,6 +3,7 @@ import Emitter from '../emitter'
 import { request } from './request'
 import { subscribe, leave } from './socket'
 import { Channel } from 'phoenix'
+import { PublicConnector } from './connector'
 
 type AuthorizeUrl = string
 
@@ -28,7 +29,9 @@ export interface Authorization {
   status: AuthorizationStatus,
   authorizer: Authorizer,
   access_token?: string,
-  authorize_url?: AuthorizeUrl
+  authorize_url?: AuthorizeUrl,
+  initiating_connector?: PublicConnector,
+  state?: string
 }
 
 function isStatus(status: string): status is AuthorizationStatus {
