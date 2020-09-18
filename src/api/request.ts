@@ -5,21 +5,24 @@ const API_PATH = '/api/platform_user'
 // as they are, we are better off going all https
 const SCHEME = 'https:'
 
+
+interface UnknownJSON {
+  [index: string]: unknown
+}
+
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
 interface RequestOptions {
   path: string,
-  method?: RequestMethod
+  method?: RequestMethod,
+  body?: UnknownJSON
 }
 
 interface FetchOptions {
-  headers: Partial<Record<'Accept' | 'Authorization', string>>,
+  headers: Partial<Record<'Accept' | 'Authorization' | 'Content-Type', string>>,
   credentials?: 'include',
   method?: RequestMethod
-}
-
-interface UnknownJSON {
-  [index: string]: unknown
+  body?: string
 }
 
 export class IKitAPIError extends Error {
@@ -55,6 +58,11 @@ function getFetchOptions(config: IKitConfig, options: RequestOptions): FetchOpti
     headers: {
       'Accept': 'application/json'
     }
+  }
+
+  if (options.body) {
+    fetchOptions.body = JSON.stringify(options.body)
+    fetchOptions.headers['Content-Type'] = 'application/json'
   }
 
   if (options.method) {

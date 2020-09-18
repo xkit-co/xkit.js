@@ -3,12 +3,16 @@ import Emitter from '../emitter'
 import { request } from './request'
 import { subscribe, leave } from './socket'
 import { Channel } from 'phoenix'
+import { PublicConnector } from './connector'
 
 type AuthorizeUrl = string
 
 interface AuthorizerPrototype {
   name: string,
-  slug: string
+  slug: string,
+  api_key_video_url?: string,
+  api_key_instructions?: string,
+  api_key_label?: string
 }
 
 interface Authorizer {
@@ -28,7 +32,9 @@ export interface Authorization {
   status: AuthorizationStatus,
   authorizer: Authorizer,
   access_token?: string,
-  authorize_url?: AuthorizeUrl
+  authorize_url?: AuthorizeUrl,
+  initiating_connector?: PublicConnector,
+  state?: string
 }
 
 function isStatus(status: string): status is AuthorizationStatus {
@@ -55,6 +61,21 @@ export async function createAuthorization(config: AuthorizedConfig, prototypeSlu
   } = await request(config, {
     path: `/authorizations/${prototypeSlug}`,
     method: 'POST'
+  })
+
+  return authorization as Authorization
+}
+
+export async function setAuthorizationAPIKey(config: AuthorizedConfig, prototypeSlug: string, state: string, apiKey: string): Promise<Authorization> {
+  const {
+    authorization
+  } = await request(config, {
+    path: `/authorizations/${prototypeSlug}`,
+    method: 'PUT',
+    body: {
+      state,
+      api_key: apiKey
+    }
   })
 
   return authorization as Authorization
