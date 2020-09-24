@@ -97,8 +97,24 @@ async function parseData(res: Response): Promise<UnknownJSON> {
   return data
 }
 
+async function friendlyFetch(url: string, options: FetchOptions): Promise<ReturnType<typeof fetch>> {
+  try {
+    const res = await fetch(url, options)
+    return res
+  } catch (e) {
+    if (e.message === "Failed to fetch") {
+      console.warn(
+`Xkit: Request failed.
+If the error message above indicates a CORS policy error, you may need to configure the Valid Web Origins to include "${window.location.origin}"
+More info here: https://docs.xkit.co/docs/configure-xkit#website-origin
+Settings: https://app.xkit.co/settings`)
+    }
+    throw e
+  }
+}
+
 export async function request(config: IKitConfig, options: RequestOptions): Promise<UnknownJSON> {
-  const res = await fetch(
+  const res = await friendlyFetch(
     `${SCHEME}//${config.domain}${API_PATH}${options.path}`,
     getFetchOptions(config, options)
   )
