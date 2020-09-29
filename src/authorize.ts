@@ -46,7 +46,7 @@ const AUTH_POP_PARAMS: string = Object.entries({
   status: 'no',
   location: 'no',
   menubar: 'no',
-  width: 600,
+  width: 625,
   height: 700
 }).reduce((paramStr: string, [key, val]: [string, string | number]) => `${paramStr},${key}=${val}`, '')
 
