@@ -67,7 +67,12 @@ function replaceAuthWindowURL(authWindow: AuthWindow, url: string): AuthWindow {
     throw new Error('Cancelled authorization')
   }
 
-  authWindow.ref.location.replace(url)
+  try {
+    authWindow.ref.location.replace(url)
+  } catch (e) {
+    // Electron doesn't support .replace, so we fall back to navigating
+    authWindow.ref.location.href = url
+  }
 
   return authWindow
 }
