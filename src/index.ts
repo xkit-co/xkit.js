@@ -1,5 +1,6 @@
 import { IKitConfig } from './config'
 import StateManager from './config-state'
+import { UnknownJSON } from './api/request'
 import { login, getAccessToken, logout } from './api/session'
 import {
   Connection,
@@ -43,7 +44,7 @@ export interface XkitJs {
   removeConnection: (slug: string) => Promise<void>,
   connect: (connector: Connector | string) => Promise<Connection>,
   reconnect: (connection: Connection) => Promise<Connection>
-  setAuthorizationField(slug: string, state: string, apiKey: string): Promise<Authorization>
+  setAuthorizationField(slug: string, state: string, params: UnknownJSON): Promise<Authorization>
 }
 
 function xkit(domain: string): XkitJs {
