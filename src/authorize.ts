@@ -62,7 +62,7 @@ function isAuthorizationReadyForSetup(auth: Authorization): auth is Authorizatio
   return auth.status === AuthorizationStatus.awaiting_callback && Boolean(auth.authorize_url)
 }
 
-function replaceAuthWindowURL(authWindow: AuthWindow, url: string): AuthWindow {
+function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, url: string): AuthWindow {
   if (!authWindow.ref || authWindow.ref.closed) {
     throw new Error('Cancelled authorization')
   }
@@ -70,8 +70,8 @@ function replaceAuthWindowURL(authWindow: AuthWindow, url: string): AuthWindow {
   try {
     authWindow.ref.location.replace(url)
   } catch (e) {
-    // Electron doesn't support .replace, so we fall back to navigating
-    authWindow.ref.location.href = url
+    // Electron doesn't support updating it directly, so we send a message to the window
+    authWindow.ref.postMessage({ location: url }, new URL(popupHost(config)).origin)
   }
 
   return authWindow
@@ -117,7 +117,7 @@ async function loadAuthWindow(config: AuthorizedConfig, authWindow: AuthWindow, 
     throw new Error('Authorization is not in a state to be setup.')
   }
 
-  replaceAuthWindowURL(authWindow, authorization.authorize_url)
+  replaceAuthWindowURL(config, authWindow, authorization.authorize_url)
 
   await onAuthWindowClose(authWindow)
 
@@ -139,7 +139,7 @@ async function updateAuthorization(config: AuthorizedConfig, authorization: Auth
 }
 
 export function authorize(config: AuthorizedConfig, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
-  replaceAuthWindowURL(authWindow, `${popupHost(config)}${loadingPath(authorization)}`)
+  replaceAuthWindowURL(config, authWindow, `${popupHost(config)}${loadingPath(authorization)}`)
 
   return new Promise((resolve, reject) => {
     subscribeToStatus(config, authorization.id)
