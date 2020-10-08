@@ -11,9 +11,12 @@ import {
 import {
   onWindowClose,
   captureMessages,
-  hasOwnProperty
+  hasOwnProperty,
+  delay
 } from './util'
 import Emitter from './emitter'
+
+const CHECK_POPUP_DELAY_MS = 100
 
 interface AuthorizationToBeSetup extends Required<Omit<Authorization, 'access_token' | 'status'>> {
   status: AuthorizationStatus.awaiting_callback
@@ -58,6 +61,15 @@ function popupHost(config: IKitConfig): string {
   return `https://${config.domain}`
 }
 
+// Electron gives little access to the popup, but we can tell if it is loaded based on whether
+// the origin is something other than null
+async function authWindowLoaded(authWindow: AuthWindow): Promise<boolean> {
+  while (authWindow.ref.location.origin == null) {
+    await delay(CHECK_POPUP_DELAY_MS)
+  }
+  return true
+}
+
 function isAuthorizationReadyForSetup(auth: Authorization): auth is AuthorizationToBeSetup {
   return auth.status === AuthorizationStatus.awaiting_callback && Boolean(auth.authorize_url)
 }
@@ -71,7 +83,9 @@ function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, url: s
     authWindow.ref.location.replace(url)
   } catch (e) {
     // Electron doesn't support updating it directly, so we send a message to the window
-    authWindow.ref.postMessage({ location: url }, new URL(popupHost(config)).origin)
+    authWindowLoaded(authWindow).then(() => {
+      authWindow.ref.postMessage({ location: url }, new URL(popupHost(config)).origin)
+    })
   }
 
   return authWindow
