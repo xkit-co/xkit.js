@@ -6,7 +6,7 @@ const API_PATH = '/api/platform_user'
 const SCHEME = 'https:'
 
 
-interface UnknownJSON {
+export interface UnknownJSON {
   [index: string]: unknown
 }
 
