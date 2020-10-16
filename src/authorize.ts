@@ -11,9 +11,14 @@ import {
 import {
   onWindowClose,
   captureMessages,
-  hasOwnProperty
+  hasOwnProperty,
+  delay
 } from './util'
 import Emitter from './emitter'
+
+const CHECK_POPUP_DELAY_MS = 100
+// TODO: keep this in sync with loading.html
+const POPUP_READY_MESSAGE = 'authWindow:ready'
 
 interface AuthorizationToBeSetup extends Required<Omit<Authorization, 'access_token' | 'status'>> {
   status: AuthorizationStatus.awaiting_callback
@@ -35,7 +40,8 @@ function isMessageError (msg: unknown): msg is ErrorMessage {
 
 export interface AuthWindow {
   errors: ErrorMessage[],
-  ref: Window
+  ref: Window,
+  ready: () => Promise<void>
 }
 
 type AuthWindowCallback<T> = (authWindow: AuthWindow) => Promise<T>
@@ -46,7 +52,7 @@ const AUTH_POP_PARAMS: string = Object.entries({
   status: 'no',
   location: 'no',
   menubar: 'no',
-  width: 600,
+  width: 625,
   height: 700
 }).reduce((paramStr: string, [key, val]: [string, string | number]) => `${paramStr},${key}=${val}`, '')
 
@@ -58,16 +64,55 @@ function popupHost(config: IKitConfig): string {
   return `https://${config.domain}`
 }
 
+function popupOrigin(config: IKitConfig): string {
+  return new URL(popupHost(config)).origin
+}
+
+// Since Electron doesn't give us access to the child window, we
+// wait for confirmation that it has loaded before attempting to
+// send it a message.
+function monitorAuthWindowReady(config: IKitConfig) {
+  let authWindowReady = false
+  let waiters: Function[] = []
+
+  const listener = (event: MessageEvent) => {
+    if (event.origin === popupOrigin(config) && event.data === POPUP_READY_MESSAGE) {
+      authWindowReady = true
+      waiters.forEach(fn => fn())
+      window.removeEventListener('message', listener)
+    }
+  }
+
+  window.addEventListener('message', listener)
+
+  return function (): Promise<void> {
+    return new Promise((resolve) => {
+      if (authWindowReady) {
+        resolve()
+        return
+      }
+      waiters.push(resolve)
+    })
+  }
+}
+
 function isAuthorizationReadyForSetup(auth: Authorization): auth is AuthorizationToBeSetup {
   return auth.status === AuthorizationStatus.awaiting_callback && Boolean(auth.authorize_url)
 }
 
-function replaceAuthWindowURL(authWindow: AuthWindow, url: string): AuthWindow {
+function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, url: string): AuthWindow {
   if (!authWindow.ref || authWindow.ref.closed) {
     throw new Error('Cancelled authorization')
   }
 
-  authWindow.ref.location.replace(url)
+  try {
+    authWindow.ref.location.replace(url)
+  } catch (e) {
+    // Electron doesn't support updating it directly, so we send a message to the window
+    authWindow.ready().then(() => {
+      authWindow.ref.postMessage({ location: url }, popupOrigin(config))
+    })
+  }
 
   return authWindow
 }
@@ -91,8 +136,10 @@ export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWin
 
   const errors = captureMessages<ErrorMessage>(popupHost(config), isMessageError)
 
+  const ready = monitorAuthWindowReady(config)
+
   try {
-    const ret = await callback({ ref, errors })
+    const ret = await callback({ ref, errors, ready })
     return ret
   } finally {
     if (ref && !ref.closed) {
@@ -112,7 +159,7 @@ async function loadAuthWindow(config: AuthorizedConfig, authWindow: AuthWindow, 
     throw new Error('Authorization is not in a state to be setup.')
   }
 
-  replaceAuthWindowURL(authWindow, authorization.authorize_url)
+  replaceAuthWindowURL(config, authWindow, authorization.authorize_url)
 
   await onAuthWindowClose(authWindow)
 
@@ -134,7 +181,7 @@ async function updateAuthorization(config: AuthorizedConfig, authorization: Auth
 }
 
 export function authorize(config: AuthorizedConfig, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
-  replaceAuthWindowURL(authWindow, `${popupHost(config)}${loadingPath(authorization)}`)
+  replaceAuthWindowURL(config, authWindow, `${popupHost(config)}${loadingPath(authorization)}`)
 
   return new Promise((resolve, reject) => {
     subscribeToStatus(config, authorization.id)
