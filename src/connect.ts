@@ -23,7 +23,7 @@ async function updateConnection(config: AuthorizedConfig, connection: Connection
   return newConnection
 }
 
-async function connectWithoutWindow (config: AuthorizedConfig, emitter: Emitter, authWindow: AuthWindow, connector: Connector | string): Promise<Connection> {
+async function connectWithoutWindow (emitter: Emitter, config: AuthorizedConfig, authWindow: AuthWindow, connector: Connector | string): Promise<Connection> {
   const slug = typeof connector === 'string' ? connector : connector.slug
   const connection = await createConnection(config, slug)
   const authorization = await authorize(config, authWindow, connection.authorization)
@@ -32,10 +32,10 @@ async function connectWithoutWindow (config: AuthorizedConfig, emitter: Emitter,
   return newConnection
 }
 
-async function reconnectWithoutWindow (config: AuthorizedConfig, emitter: Emitter, authWindow: AuthWindow, connection: Connection): Promise<Connection> {
+async function reconnectWithoutWindow (emitter: Emitter, config: AuthorizedConfig, authWindow: AuthWindow, connection: Connection): Promise<Connection> {
   const oldAuthorization = connection.authorization
   if (!oldAuthorization) {
-    const newConnection = await connectWithoutWindow(config, emitter, authWindow, connection.connector)
+    const newConnection = await connectWithoutWindow(emitter, config, authWindow, connection.connector)
     return newConnection
   }
 
@@ -46,23 +46,23 @@ async function reconnectWithoutWindow (config: AuthorizedConfig, emitter: Emitte
   return newConnection
 }
 
-export async function connect (callWithConfig: configGetter, emitter: Emitter, connector: Connector | string): Promise<Connection> {
+export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, connectorSlug: string): Promise<void> {
+  await removeAPIConnection(config, connectorSlug)
+  emitter.emit(DISABLE_CONNECTION_EVENT, connectorSlug)
+}
+
+export async function connect (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string): Promise<Connection> {
   const connection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
-    return callWithConfig(config => connectWithoutWindow(config, emitter, authWindow, connector))
+    return callWithConfig(config => connectWithoutWindow(emitter, config, authWindow, connector))
   })
 
   return connection
 }
 
-export async function reconnect (callWithConfig: configGetter, emitter: Emitter, connection: Connection): Promise<Connection> {
+export async function reconnect (emitter: Emitter, callWithConfig: configGetter, connection: Connection): Promise<Connection> {
   const newConnection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
-    return callWithConfig(config => reconnectWithoutWindow(config, emitter, authWindow, connection))
+    return callWithConfig(config => reconnectWithoutWindow(emitter, config, authWindow, connection))
   })
 
   return newConnection
-}
-
-export async function removeConnection(config: AuthorizedConfig, emitter: Emitter, connectorSlug: string): Promise<void> {
-  await removeAPIConnection(config, connectorSlug)
-  emitter.emit(DISABLE_CONNECTION_EVENT, connectorSlug)
 }

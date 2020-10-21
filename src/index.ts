@@ -73,9 +73,9 @@ function xkit(domain: string): XkitJs {
     getConnection: configState.curryWithConfig(getConnection),
     getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector, getConnectionPublic),
     getConnectionToken: configState.curryWithConfig(getConnectionToken),
-    removeConnection: configState.curryWithConfig(removeConnection),
-    connect: connect.bind(null, configState.callWithConfig),
-    reconnect: reconnect.bind(null, configState.callWithConfig),
+    removeConnection: configState.curryWithConfig(removeConnection.bind(null, emitter)),
+    connect: connect.bind(null, emitter, configState.callWithConfig),
+    reconnect: reconnect.bind(null, emitter, configState.callWithConfig),
     setAuthorizationField: configState.curryWithConfig(setAuthorizationField),
     on: emitter.on.bind(emitter),
     off: emitter.off.bind(emitter)
