@@ -32,7 +32,7 @@ class Emitter {
     return this.listeners.get(type)
   }
 
-  on (type: string, fn: EventCallback): Emitter {
+  on (type: string, fn: EventCallback) {
     const listeners = this._getListeners(type)
     if (listeners.has(fn)) {
       throw new Error('Can not use the same function for the same type of event more than once.')
@@ -44,10 +44,9 @@ class Emitter {
     }
     listeners.set(fn, listener)
     this.target.addEventListener(type, listener)
-    return this
   }
 
-  off (type: string, fn: EventCallback): Emitter {
+  off (type: string, fn: EventCallback) {
     const listeners = this._getListeners(type)
     if (!listeners.has(fn)) {
       throw new Error('The supplied function is not a listener on the given type.')
@@ -55,7 +54,6 @@ class Emitter {
     const listener = listeners.get(fn)
     this.target.removeEventListener(type, listener)
     listeners.delete(fn)
-    return this
   }
 
   emit(type: string, payload?: unknown) {

@@ -8,8 +8,7 @@ import {
   getConnection,
   getConnectionOrConnector,
   getConnectionPublic,
-  getConnectionToken,
-  removeConnection
+  getConnectionToken
 } from './api/connection'
 import {
   Connector,
@@ -21,11 +20,18 @@ import {
   setAuthorizationField,
   Authorization
 } from './api/authorization'
-import { connect, reconnect } from './connect'
+import {
+  connect,
+  reconnect,
+  removeConnection
+} from './connect'
 import {
   Platform,
   getPlatform
 } from './api/platform'
+import Emitter from './emitter'
+
+type XkitEvents = 'connection:enable' | 'connection:disable'
 
 export interface XkitJs {
   domain: string,
@@ -44,11 +50,14 @@ export interface XkitJs {
   removeConnection: (slug: string) => Promise<void>,
   connect: (connector: Connector | string) => Promise<Connection>,
   reconnect: (connection: Connection) => Promise<Connection>
-  setAuthorizationField(slug: string, state: string, params: UnknownJSON): Promise<Authorization>
+  setAuthorizationField(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
+  on: (type: XkitEvents, fn: (payload: unknown) => void) => void,
+  off: (type: XkitEvents, fn: (payload: unknown) => void) => void
 }
 
 function xkit(domain: string): XkitJs {
-  const configState = new StateManager({ domain })
+  const emitter = new Emitter()
+  const configState = new StateManager({ domain }, emitter)
 
   return {
     domain,
@@ -67,7 +76,9 @@ function xkit(domain: string): XkitJs {
     removeConnection: configState.curryWithConfig(removeConnection),
     connect: connect.bind(null, configState.callWithConfig),
     reconnect: reconnect.bind(null, configState.callWithConfig),
-    setAuthorizationField: configState.curryWithConfig(setAuthorizationField)
+    setAuthorizationField: configState.curryWithConfig(setAuthorizationField),
+    on: emitter.on.bind(emitter),
+    off: emitter.off.bind(emitter)
   }
 }
 

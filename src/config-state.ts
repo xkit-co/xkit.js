@@ -8,6 +8,8 @@ import {
 } from './api/session'
 import Emitter from './emitter'
 
+const CONFIG_UPDATE_EVENT = 'config:update'
+
 interface InitialConfigState extends IKitConfig {
   loginRedirect?: string
 }
@@ -28,14 +30,14 @@ class StateManager {
   private state: ConfigState
   emitter: Emitter
 
-  constructor (initialState: InitialConfigState) {
+  constructor (initialState: InitialConfigState, emitter: Emitter) {
     this.state = {
       ...initialState,
       loading: true
     }
 
-    this.emitter = new Emitter()
-    this.emitter.on('update', ({ domain }: Partial<ConfigState>) => {
+    this.emitter = emitter
+    this.emitter.on(CONFIG_UPDATE_EVENT, ({ domain }: Partial<ConfigState>) => {
       if (domain) {
         this.initializeConfig()
       }
@@ -45,17 +47,18 @@ class StateManager {
     }
   }
 
+  // TODO: deprecate this
   onUpdate = (updateFn: Function): Function => {
     const wrappedUpdateFn = (payload: unknown) => updateFn()
-    this.emitter.on('update', wrappedUpdateFn)
+    this.emitter.on(CONFIG_UPDATE_EVENT, wrappedUpdateFn)
     return () => {
-      this.emitter.off('update', wrappedUpdateFn)
+      this.emitter.off(CONFIG_UPDATE_EVENT, wrappedUpdateFn)
     }
   }
 
   setState = (newState: Partial<ConfigState>): void => {
     Object.assign(this.state, newState)
-    this.emitter.emit('update', newState)
+    this.emitter.emit(CONFIG_UPDATE_EVENT, newState)
   }
 
   getState = (): ConfigState => {
