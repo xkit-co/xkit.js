@@ -47,7 +47,7 @@ class StateManager {
     }
   }
 
-  // TODO: deprecate this
+  // DEPRECATED
   onUpdate = (updateFn: Function): Function => {
     const wrappedUpdateFn = (payload: unknown) => updateFn()
     this.emitter.on(CONFIG_UPDATE_EVENT, wrappedUpdateFn)

@@ -31,7 +31,14 @@ import {
 } from './api/platform'
 import Emitter from './emitter'
 
-type XkitEvents = 'connection:enable' | 'connection:disable'
+type XkitEvents = 'connection:enable' | 'connection:disable' | 'config:update'
+
+function deprecate<T>(fn: (...args: unknown[]) => T, name?: string, alternative?: string): (...args: unknown[]) => T {
+  return function (...args: unknown[]): T {
+    console.warn(`Xkit: ${name || 'this function'} is deprecated.${alternative ? ` Use ${alternative} instead.` : ''}`)
+    return fn.call(this, ...args)
+  }
+}
 
 export interface XkitJs {
   domain: string,
@@ -64,7 +71,7 @@ function xkit(domain: string): XkitJs {
     url: `https://${domain}`,
     connectorUrl: (slug: string) => `https://${configState.getState().domain}${connectorPath(slug)}`,
     ready: (fn: Function): void => fn(),
-    onUpdate: configState.onUpdate,
+    onUpdate: deprecate(configState.onUpdate, 'xkit.onUpdate', 'xkit.on("config:update", ...)'),
     logout: configState.logout,
     login: configState.login,
     getAccessToken: configState.retrieveToken,
