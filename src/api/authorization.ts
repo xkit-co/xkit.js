@@ -13,7 +13,8 @@ interface AuthorizerPrototype {
   collect_video_url?: string,
   collect_instructions?: string,
   collect_label?: string,
-  collect_field?: string
+  collect_field?: string,
+  collect_suffix?: string
 }
 
 interface Authorizer {
