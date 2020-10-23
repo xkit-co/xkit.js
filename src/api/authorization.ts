@@ -14,7 +14,8 @@ interface AuthorizerPrototype {
   collect_instructions?: string,
   collect_label?: string,
   collect_field?: string,
-  collect_suffix?: string
+  collect_suffix?: string,
+  collect_save?: string
 }
 
 interface Authorizer {
