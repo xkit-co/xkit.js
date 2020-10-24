@@ -17,7 +17,7 @@ export async function silent(fn: Function): Promise<void> {
   try {
     await fn()
   } catch (e) {
-    console.error(e)
+    logger.error(e)
   }
 }
 
@@ -26,7 +26,7 @@ type filterMsg<T> = (msg: unknown) => msg is T
 export function captureMessages<T>(origin: string, filter: filterMsg<T>): T[] {
   const messages: T[] = []
   window.addEventListener('message', (event) => {
-    console.debug(`incoming message`, event)
+    logger.debug(`incoming message`, event)
     if (event.origin === origin && filter(event.data)) {
       messages.push(event.data)
     }
@@ -38,4 +38,11 @@ export function captureMessages<T>(origin: string, filter: filterMsg<T>): T[] {
 export function hasOwnProperty<X extends {}, Y extends PropertyKey>
   (obj: X, prop: Y): obj is X & Record<Y, unknown> {
   return obj.hasOwnProperty(prop)
+}
+
+export const logger = {
+  info: console.log.bind(console, 'Xkit:'),
+  error: console.error.bind(console, 'Xkit:'),
+  warn: console.warn.bind(console, 'Xkit:'),
+  debug: process.env.NODE_ENV === 'development' ? console.debug.bind(console, 'Xkit:') : noop
 }

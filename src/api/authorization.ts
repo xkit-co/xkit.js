@@ -4,6 +4,7 @@ import { request, UnknownJSON } from './request'
 import { subscribe, leave } from './socket'
 import { Channel } from 'phoenix'
 import { PublicConnector } from './connector'
+import { logger } from '../util'
 
 type AuthorizeUrl = string
 
@@ -97,14 +98,14 @@ export async function getAuthorization(config: AuthorizedConfig, prototypeSlug: 
 export async function subscribeToStatus(config: AuthorizedConfig, authorizationId: string | number): Promise<[Emitter, AuthorizationStatus]> {
   const emitter = new Emitter()
   const [channel, { status }] = (await subscribe(config, `authorization_status:${authorizationId}`)) as [Channel, { status: string }]
-  console.debug(`Subscribed to channel`, channel)
+  logger.debug(`Subscribed to channel`, channel)
 
   if (!isStatus(status)) {
     throw new Error(`Invalid status returned from subscription: ${status}`)
   }
 
   if (isComplete(status)) {
-    console.debug(`Removing subscription to authorization status, already in a terminal state: ${status}.`)
+    logger.debug(`Removing subscription to authorization status, already in a terminal state: ${status}.`)
     await leave(channel)
     return [null, status as AuthorizationStatus]
   }
@@ -121,7 +122,7 @@ export async function subscribeToStatus(config: AuthorizedConfig, authorizationI
     emitter.emit('status_update', { status })
 
     if (isComplete(status)) {
-      console.debug(`Removing subscription to authorization status, now in a terminal state: ${status}.`)
+      logger.debug(`Removing subscription to authorization status, now in a terminal state: ${status}.`)
       await leave(channel)
       return
     }

@@ -1,4 +1,5 @@
 import { IKitConfig } from '../config'
+import { logger } from '../util'
 
 const API_PATH = '/api/platform_user'
 // Theoretically we can support http in development, but with Cookie policies
@@ -103,8 +104,8 @@ async function friendlyFetch(url: string, options: FetchOptions): Promise<Return
     return res
   } catch (e) {
     if (e.message === "Failed to fetch") {
-      console.warn(
-`Xkit: Request failed.
+      logger.warn(
+`Request failed.
 If the error message above indicates a CORS policy error, you may need to configure the Valid Web Origins to include "${window.location.origin}"
 More info here: https://docs.xkit.co/docs/configure-xkit#website-origin
 Settings: https://app.xkit.co/settings`)
