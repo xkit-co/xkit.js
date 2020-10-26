@@ -77,14 +77,19 @@ function monitorAuthWindowReady(config: IKitConfig) {
   let waiters: Function[] = []
 
   const listener = (event: MessageEvent) => {
+    console.log('got message from popup', Date.now())
     if (event.origin === popupOrigin(config) && event.data === POPUP_READY_MESSAGE) {
       authWindowReady = true
+      console.log('auth window is ready', Date.now())
+      console.log('alerting', waiters.length, 'waiters')
       waiters.forEach(fn => fn())
       window.removeEventListener('message', listener)
     }
   }
 
   window.addEventListener('message', listener)
+
+  console.log('monitoring auth window', Date.now())
 
   return function (): Promise<void> {
     return new Promise((resolve) => {
@@ -107,11 +112,15 @@ async function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, 
   }
 
   try {
+    throw new Error("test electron")
     authWindow.ref.location.replace(url)
   } catch (e) {
     // Electron doesn't support updating it directly, so we send a message to the window
+    console.log('waiting for authWindow', Date.now())
     await authWindow.ready()
+    console.log('authWindow is ready', Date.now())
     authWindow.ref.postMessage({ location: url }, popupOrigin(config))
+    console.log('sent message', Date.now())
   }
 
   return authWindow
@@ -126,6 +135,7 @@ async function onAuthWindowClose(authWindow: AuthWindow): Promise<void> {
 }
 
 export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWindowCallback<T>): Promise<T> {
+  console.log('preparing auth window')
   if (!config.token) {
     throw new Error('Unauthorized')
   }
