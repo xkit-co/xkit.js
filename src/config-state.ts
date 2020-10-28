@@ -7,6 +7,7 @@ import {
   getAccessToken
 } from './api/session'
 import Emitter from './emitter'
+import { logger } from './util'
 
 const CONFIG_UPDATE_EVENT = 'config:update'
 
@@ -118,11 +119,11 @@ class StateManager {
   }
 
   redirect = async (e: Error | undefined): Promise<void> => {
-    console.error(`Encoutered error while refreshing access: ${e ? e.message : 'undefined'}`)
+    logger.error(`Encoutered error while refreshing access: ${e ? e.message : 'undefined'}`)
 
     const { loginRedirect } = this.getState()
     if (!loginRedirect) {
-      console.error('Misconfigured site: unable to retrieve login redirect location')
+      logger.error('Misconfigured site: unable to retrieve login redirect location')
       throw new Error('We encountered an unexpected error. Please report this issue.')
     }
     window.location.href = loginRedirect
@@ -145,7 +146,7 @@ class StateManager {
         // try to refresh
         await this.retrieveToken()
       } else {
-        console.warn(e)
+        logger.warn(e)
       }
     } finally {
       this.setState({ loading: false })
@@ -193,7 +194,7 @@ class StateManager {
         this.setState({ loading: true })
         await this.retrieveToken()
       } catch (e) {
-        console.debug(`User is not yet logged into Xkit.`, e)
+        logger.debug(`User is not yet logged into Xkit.`, e)
       } finally {
         this.setState({ loading: false })
       }
@@ -205,12 +206,12 @@ class StateManager {
       const { domain } = this.getState()
       const { login_redirect_url } = await getPlatform({ domain })
       if (!login_redirect_url) {
-        console.warn("Unable to retreive login redirect URL")
+        logger.warn('Unable to retreive login redirect URL')
       } else {
         this.setState({ loginRedirect: login_redirect_url })
       }
     } catch (e) {
-      console.warn(`Unable to retreive login redirect URL: ${e.message}`)
+      logger.warn(`Unable to retreive login redirect URL: ${e.message}`)
     }
   }
 }

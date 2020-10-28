@@ -1,5 +1,6 @@
 import { Socket, Channel, Push } from 'phoenix'
 import { AuthorizedConfig } from '../config'
+import { logger } from '../util'
 import { assertToken } from './session'
 
 const SOCKET_ENDPOINT = '/socket'
@@ -50,7 +51,7 @@ async function initializeSocket(config: AuthorizedConfig): Promise<UndocumentedS
       if (!socketHasOpened) {
         resetSocket(socket)
         socket = null
-        console.debug('Socket initialization failed', evt)
+        logger.debug('Socket initialization failed', evt)
 
         // check to see if it's an auth error or not
         assertToken(config)
@@ -60,11 +61,11 @@ async function initializeSocket(config: AuthorizedConfig): Promise<UndocumentedS
           })
           .catch(reject)
       } else {
-        console.debug('Socket closing', evt)
+        logger.debug('Socket closing', evt)
       }
     })
     socket.onError((err) => {
-      console.debug('Socket error', err)
+      logger.debug('Socket error', err)
     })
     socket.connect()
   })
@@ -77,11 +78,11 @@ function promisifyPush(push: Push): Promise<unknown> {
         resolve(response)
       })
       .receive('error', ({ reason }) => {
-        console.debug(`Received error response: ${reason}`)
+        logger.debug(`Received error response: ${reason}`)
         reject(new Error(reason))
       })
       .receive('timeout', () => {
-        console.debug('Received timeout')
+        logger.debug('Received timeout')
         reject(new Error('Network timeout'))
       })
   })
@@ -89,16 +90,16 @@ function promisifyPush(push: Push): Promise<unknown> {
 
 export async function subscribe(config: AuthorizedConfig, topic: string): Promise<[Channel, unknown]> {
   const socket = await initializeSocket(config)
-  console.debug(`Initialized socket`, socket)
+  logger.debug(`Initialized socket`, socket)
   const channel = socket.channel(topic)
   channel.onError((err) => {
-    console.debug(`Channel error`, err)
+    logger.debug(`Channel error`, err)
   })
-  channel.onClose(() => console.debug(`Channel closed`))
-  console.debug(`Initialized channel`, channel)
+  channel.onClose(() => logger.debug(`Channel closed`))
+  logger.debug(`Initialized channel`, channel)
 
   const reply = await promisifyPush(channel.join())
-  console.debug(`Got reply`, reply)
+  logger.debug(`Got reply`, reply)
   return [channel, reply]
 }
 

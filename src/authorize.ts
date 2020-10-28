@@ -12,7 +12,7 @@ import {
   onWindowClose,
   captureMessages,
   hasOwnProperty,
-  delay
+  logger
 } from './util'
 import Emitter from './emitter'
 
@@ -100,7 +100,7 @@ function isAuthorizationReadyForSetup(auth: Authorization): auth is Authorizatio
   return auth.status === AuthorizationStatus.awaiting_callback && Boolean(auth.authorize_url)
 }
 
-function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, url: string): AuthWindow {
+async function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, url: string): Promise<AuthWindow> {
   if (!authWindow.ref || authWindow.ref.closed) {
     throw new Error('Cancelled authorization')
   }
@@ -109,9 +109,8 @@ function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, url: s
     authWindow.ref.location.replace(url)
   } catch (e) {
     // Electron doesn't support updating it directly, so we send a message to the window
-    authWindow.ready().then(() => {
-      authWindow.ref.postMessage({ location: url }, popupOrigin(config))
-    })
+    await authWindow.ready()
+    authWindow.ref.postMessage({ location: url }, popupOrigin(config))
   }
 
   return authWindow
@@ -130,13 +129,16 @@ export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWin
     throw new Error('Unauthorized')
   }
 
-  const loadingUrl = `${popupHost(config)}${loadingPath()}`
-
-  const ref = window.open(loadingUrl, windowName(), AUTH_POP_PARAMS)
-
   const errors = captureMessages<ErrorMessage>(popupHost(config), isMessageError)
-
   const ready = monitorAuthWindowReady(config)
+
+  // don't open the window until our monitors above are set up,
+  // otherwise we may not receive the messages we need
+  const ref = window.open(
+    `${popupHost(config)}${loadingPath()}`,
+    windowName(),
+    AUTH_POP_PARAMS
+  )
 
   try {
     const ret = await callback({ ref, errors, ready })
@@ -149,21 +151,19 @@ export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWin
 }
 
 export function prepareAuthWindowWithConfig<T>(callWithConfig: configGetter, callback: AuthWindowCallback<T>): Promise<T> {
-  return callWithConfig((config) => {
-    return prepareAuthWindow(config, callback)
-  })
+  return callWithConfig((config) => prepareAuthWindow(config, callback))
 }
 
-async function loadAuthWindow(config: AuthorizedConfig, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
+async function loadAuthWindow(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
   if (!isAuthorizationReadyForSetup(authorization)) {
     throw new Error('Authorization is not in a state to be setup.')
   }
 
-  replaceAuthWindowURL(config, authWindow, authorization.authorize_url)
+  callWithConfig(config => replaceAuthWindowURL(config, authWindow, authorization.authorize_url))
 
   await onAuthWindowClose(authWindow)
 
-  const newAuthorization = await updateAuthorization(config, authorization)
+  const newAuthorization = await callWithConfig(config => updateAuthorization(config, authorization))
 
   if (newAuthorization.status === AuthorizationStatus.awaiting_callback) {
     throw new Error('Cancelled authorization')
@@ -180,39 +180,39 @@ async function updateAuthorization(config: AuthorizedConfig, authorization: Auth
   return newAuthorization
 }
 
-export function authorize(config: AuthorizedConfig, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
-  replaceAuthWindowURL(config, authWindow, `${popupHost(config)}${loadingPath(authorization)}`)
+export function authorize(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
+  callWithConfig(config => replaceAuthWindowURL(config, authWindow, `${popupHost(config)}${loadingPath(authorization)}`))
 
   return new Promise((resolve, reject) => {
-    subscribeToStatus(config, authorization.id)
+    callWithConfig(config => subscribeToStatus(config, authorization.id))
       .then(([emitter, status]: [Emitter, AuthorizationStatus]) => {
         if (isComplete(status)) {
-          updateAuthorization(config, authorization).then(resolve).catch(reject)
+          callWithConfig(config => updateAuthorization(config, authorization)).then(resolve).catch(reject)
           return
         }
 
         authorization.status = status
 
         emitter.on('status_update', ({ status }) => {
-          console.debug('received status update', status)
+          logger.debug('received status update', status)
           if (isComplete(status)) {
-            updateAuthorization(config, authorization).then(resolve).catch(reject)
+            callWithConfig(config => updateAuthorization(config, authorization)).then(resolve).catch(reject)
             emitter.removeAllListeners()
           }
         })
         emitter.on('error', ({ error }) => {
-          console.debug(`Emitter received an error`, error)
+          logger.debug(`Emitter received an error`, error)
           reject(error instanceof Error ? error : new Error(error))
           emitter.removeAllListeners()
         })
         emitter.on('close', () => {
-          console.debug(`Emitter closed`)
+          logger.debug(`Emitter closed`)
           reject(new Error('Subscriber closed unexpectedly'))
           emitter.removeAllListeners()
         })
 
         if (status === AuthorizationStatus.awaiting_callback) {
-          loadAuthWindow(config, authWindow, authorization).catch(reject)
+          loadAuthWindow(callWithConfig, authWindow, authorization).catch(reject)
         }
       })
       .catch(reject)
