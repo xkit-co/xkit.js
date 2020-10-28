@@ -46,14 +46,19 @@ export interface AuthWindow {
 
 type AuthWindowCallback<T> = (authWindow: AuthWindow) => Promise<T>
 
+const AUTH_POP_WIDTH_PX = 625
+const AUTH_POP_HEIGHT_PX = 700
 const AUTH_POP_PARAMS: string = Object.entries({
   scrollbars: 'no',
   resizable: 'no',
   status: 'no',
   location: 'no',
   menubar: 'no',
-  width: 625,
-  height: 700
+  width: AUTH_POP_WIDTH_PX,
+  height: AUTH_POP_HEIGHT_PX,
+  // Center the auth popup window on user's screen
+  left: window.screen ? window.screen.width / 2 - AUTH_POP_WIDTH_PX / 2 : 0,
+  top: window.screen ? window.screen.height / 2 - AUTH_POP_HEIGHT_PX / 2 : 0
 }).reduce((paramStr: string, [key, val]: [string, string | number]) => `${paramStr},${key}=${val}`, '')
 
 function windowName() {
