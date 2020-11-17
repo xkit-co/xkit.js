@@ -34,6 +34,19 @@ export async function getAccessToken(config: IKitConfig): Promise<string> {
   return access_token as string
 }
 
+export async function getOneTimeToken(config: AuthorizedConfig): Promise<string> {
+  const { ott } = await request(config, {
+    path: '/sessions/ott',
+    method: 'POST'
+  })
+
+  if (!ott) {
+    throw new Error('No one-time token was returned')
+  }
+
+  return ott as string
+}
+
 export async function assertToken(config: IKitConfig): Promise<void> {
   await request(config, {
     path: '/session'
