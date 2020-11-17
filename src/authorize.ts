@@ -8,6 +8,7 @@ import {
   subscribeToStatus,
   loadingPath
 } from './api/authorization'
+import { getOneTimeToken } from './api/session'
 import {
   onWindowClose,
   captureMessages,
@@ -110,11 +111,15 @@ async function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, 
     throw new Error('Cancelled authorization')
   }
 
+  // Wait every time time so we can be sure we're e.g. logged in
+  await authWindow.ready()
+  // Reset our monitor for the next time
+  authWindow.ready = monitorAuthWindowReady(config)
+
   try {
     authWindow.ref.location.replace(url)
   } catch (e) {
     // Electron doesn't support updating it directly, so we send a message to the window
-    await authWindow.ready()
     authWindow.ref.postMessage({ location: url }, popupOrigin(config))
   }
 
@@ -185,11 +190,19 @@ async function updateAuthorization(config: AuthorizedConfig, authorization: Auth
   return newAuthorization
 }
 
-export function authorize(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
-  callWithConfig(config => replaceAuthWindowURL(config, authWindow, `${popupHost(config)}${loadingPath(authorization)}`))
+// TODO: make this concurrent with loading the connection?
+async function loginToAuthWindow(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
+  const oneTimeToken = await callWithConfig(getOneTimeToken)
+  return callWithConfig(config => {
+    const loadingURL = `${popupHost(config)}${loadingPath(authorization)}?token=${oneTimeToken}`
+    return replaceAuthWindowURL(config, authWindow, loadingURL)
+  })
+}
 
+export function authorize(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
   return new Promise((resolve, reject) => {
-    callWithConfig(config => subscribeToStatus(config, authorization.id))
+    loginToAuthWindow(callWithConfig, authWindow, authorization)
+      .then(() => callWithConfig(config => subscribeToStatus(config, authorization.id)))
       .then(([emitter, status]: [Emitter, AuthorizationStatus]) => {
         if (isComplete(status)) {
           callWithConfig(config => updateAuthorization(config, authorization)).then(resolve).catch(reject)
