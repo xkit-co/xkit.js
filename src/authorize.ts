@@ -111,11 +111,15 @@ async function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, 
     throw new Error('Cancelled authorization')
   }
 
+  // Wait every time time so we can be sure we're e.g. logged in
+  await authWindow.ready()
+  // Reset our monitor for the next time
+  authWindow.ready = monitorAuthWindowReady(config)
+
   try {
     authWindow.ref.location.replace(url)
   } catch (e) {
     // Electron doesn't support updating it directly, so we send a message to the window
-    await authWindow.ready()
     authWindow.ref.postMessage({ location: url }, popupOrigin(config))
   }
 
