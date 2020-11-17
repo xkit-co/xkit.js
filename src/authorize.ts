@@ -8,6 +8,7 @@ import {
   subscribeToStatus,
   loadingPath
 } from './api/authorization'
+import { getOneTimeToken } from './api/session'
 import {
   onWindowClose,
   captureMessages,
@@ -185,11 +186,19 @@ async function updateAuthorization(config: AuthorizedConfig, authorization: Auth
   return newAuthorization
 }
 
-export function authorize(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
-  callWithConfig(config => replaceAuthWindowURL(config, authWindow, `${popupHost(config)}${loadingPath(authorization)}`))
+// TODO: make this concurrent with loading the connection?
+async function loginToAuthWindow(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
+  const oneTimeToken = await callWithConfig(getOneTimeToken)
+  return callWithConfig(config => {
+    const loadingURL = `${popupHost(config)}${loadingPath(authorization)}?token=${oneTimeToken}`
+    return replaceAuthWindowURL(config, authWindow, loadingURL)
+  })
+}
 
+export function authorize(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
   return new Promise((resolve, reject) => {
-    callWithConfig(config => subscribeToStatus(config, authorization.id))
+    loginToAuthWindow(callWithConfig, authWindow, authorization)
+      .then(() => callWithConfig(config => subscribeToStatus(config, authorization.id)))
       .then(([emitter, status]: [Emitter, AuthorizationStatus]) => {
         if (isComplete(status)) {
           callWithConfig(config => updateAuthorization(config, authorization)).then(resolve).catch(reject)
