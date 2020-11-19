@@ -17,7 +17,7 @@ import {
   listConnectorsPublic
 } from './api/connector'
 import {
-  setAuthorizationField,
+  setAuthorizationFields,
   Authorization
 } from './api/authorization'
 import {
@@ -46,6 +46,7 @@ export interface XkitJs {
   url: string,
   connectorUrl: (slug: string) => string,
   ready: (fn: Function) => void,
+  /** @deprecated Use `on("config:update", ...)` instead. */
   onUpdate: (fn: Function) => Function,
   logout: () => Promise<void>
   login: (token: string) => Promise<void>,
@@ -58,7 +59,9 @@ export interface XkitJs {
   removeConnection: (slug: string) => Promise<void>,
   connect: (connector: Connector | string) => Promise<Connection>,
   reconnect: (connection: Connection) => Promise<Connection>
+  /** @deprecated Use `setAuthorizationFields(...)` instead. */
   setAuthorizationField(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
+  setAuthorizationFields(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
   on: (type: XkitEvents, fn: (payload: unknown) => void) => void,
   off: (type: XkitEvents, fn: (payload: unknown) => void) => void
 }
@@ -84,7 +87,8 @@ function xkit(domain: string): XkitJs {
     removeConnection: configState.curryWithConfig(removeConnection.bind(null, emitter)),
     connect: connect.bind(null, emitter, configState.callWithConfig),
     reconnect: reconnect.bind(null, emitter, configState.callWithConfig),
-    setAuthorizationField: configState.curryWithConfig(setAuthorizationField),
+    setAuthorizationField: deprecate(configState.curryWithConfig(setAuthorizationFields), 'xkit.setAuthorizationField', 'xkit.setAuthorizationFields(...)'),
+    setAuthorizationFields: configState.curryWithConfig(setAuthorizationFields),
     on: emitter.on.bind(emitter),
     off: emitter.off.bind(emitter)
   }

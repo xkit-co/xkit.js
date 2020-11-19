@@ -8,14 +8,24 @@ import { logger } from '../util'
 
 type AuthorizeUrl = string
 
+export interface CollectField {
+  name: string,
+  label: string,
+  suffix?: string
+}
+
 interface AuthorizerPrototype {
   name: string,
   slug: string,
   collect_video_url?: string,
   collect_instructions?: string,
+  /** @deprecated Use `collect_fields` instead. */
   collect_label?: string,
+  /** @deprecated Use `collect_fields` instead. */
   collect_field?: string,
+  /** @deprecated Use `collect_fields` instead. */
   collect_suffix?: string,
+  collect_fields?: CollectField[],
   collect_save?: string
 }
 
@@ -70,7 +80,7 @@ export async function createAuthorization(config: AuthorizedConfig, prototypeSlu
   return authorization as Authorization
 }
 
-export async function setAuthorizationField(config: AuthorizedConfig, prototypeSlug: string, state: string, params: UnknownJSON): Promise<Authorization> {
+export async function setAuthorizationFields(config: AuthorizedConfig, prototypeSlug: string, state: string, params: UnknownJSON): Promise<Authorization> {
   const {
     authorization
   } = await request(config, {
