@@ -58,8 +58,8 @@ const AUTH_POP_PARAMS: string = Object.entries({
   width: AUTH_POP_WIDTH_PX,
   height: AUTH_POP_HEIGHT_PX,
   // Center the auth popup window on user's screen
-  left: window.screen ? window.screen.width / 2 - AUTH_POP_WIDTH_PX / 2 : 0,
-  top: window.screen ? window.screen.height / 2 - AUTH_POP_HEIGHT_PX / 2 : 0
+  left: window?.screen ? window.screen.width / 2 - AUTH_POP_WIDTH_PX / 2 : 0,
+  top: window?.screen ? window.screen.height / 2 - AUTH_POP_HEIGHT_PX / 2 : 0
 }).reduce((paramStr: string, [key, val]: [string, string | number]) => `${paramStr},${key}=${val}`, '')
 
 function windowName() {
