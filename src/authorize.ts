@@ -77,6 +77,14 @@ function popupOrigin(config: IKitConfig): string {
   return new URL(popupHost(config)).origin
 }
 
+function loadingURL(config: IKitConfig, authorization?: Authorization, token?: string): string {
+  const params: Record<string, string> = { opener_origin: window.location.origin }
+  if (token) { params.token = token }
+  const queryString = Object.keys(params).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
+
+  return `${popupHost(config)}${loadingPath(authorization)}?${queryString}`
+}
+
 // Since Electron doesn't give us access to the child window, we
 // wait for confirmation that it has loaded before attempting to
 // send it a message.
@@ -147,11 +155,7 @@ export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWin
 
   // don't open the window until our monitors above are set up,
   // otherwise we may not receive the messages we need
-  const ref = window.open(
-    `${popupHost(config)}${loadingPath()}`,
-    windowName(),
-    AUTH_POP_PARAMS
-  )
+  const ref = window.open(loadingURL(config), windowName(), AUTH_POP_PARAMS)
 
   try {
     const ret = await callback({ ref, errors, ready })
@@ -197,8 +201,8 @@ async function updateAuthorization(config: AuthorizedConfig, authorization: Auth
 async function loginToAuthWindow(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
   const oneTimeToken = await callWithConfig(getOneTimeToken)
   return callWithConfig(config => {
-    const loadingURL = `${popupHost(config)}${loadingPath(authorization)}?token=${oneTimeToken}`
-    return replaceAuthWindowURL(config, authWindow, loadingURL)
+    const url = loadingURL(config, authorization, oneTimeToken)
+    return replaceAuthWindowURL(config, authWindow, url)
   })
 }
 
