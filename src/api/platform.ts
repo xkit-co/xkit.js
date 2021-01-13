@@ -6,7 +6,8 @@ export interface Platform {
   slug: string,
   custom_domain?: string,
   website: string,
-  login_redirect_url: string
+  login_redirect_url: string,
+  remove_branding: boolean
 }
 
 export async function getPlatform(config: IKitConfig): Promise<Platform> {
