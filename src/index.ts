@@ -24,6 +24,7 @@ import {
 import {
   connect,
   reconnect,
+  addConnection,
   removeConnection
 } from './connect'
 import {
@@ -60,7 +61,8 @@ export interface XkitJs {
   getConnectionToken: (slug: string) => Promise<string | null>,
   removeConnection: (slug: string) => Promise<void>,
   connect: (connector: Connector | string) => Promise<Connection>,
-  reconnect: (connection: Connection) => Promise<Connection>
+  reconnect: (connection: Connection) => Promise<Connection>,
+  addConnection: (connector: Connector | string, id: string) => Promise<Connection>,
   /** @deprecated Use `setAuthorizationFields(...)` instead. */
   setAuthorizationField(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
   setAuthorizationFields(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
@@ -90,6 +92,7 @@ function xkit(domain: string): XkitJs {
     removeConnection: configState.curryWithConfig(removeConnection.bind(null, emitter)),
     connect: connect.bind(null, emitter, configState.callWithConfig),
     reconnect: reconnect.bind(null, emitter, configState.callWithConfig),
+    addConnection: addConnection.bind(null, emitter, configState.callWithConfig),
     setAuthorizationField: deprecate(configState.curryWithConfig(setAuthorizationFields), 'xkit.setAuthorizationField', 'xkit.setAuthorizationFields(...)'),
     setAuthorizationFields: configState.curryWithConfig(setAuthorizationFields),
     on: emitter.on.bind(emitter),
