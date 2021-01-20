@@ -5,6 +5,7 @@ import { login, getAccessToken, logout } from './api/session'
 import {
   Connection,
   ConnectionShell,
+  listConnections,
   getConnection,
   getConnectionOrConnector,
   getConnectionPublic,
@@ -53,6 +54,7 @@ export interface XkitJs {
   getAccessToken: () => Promise<string>,
   getPlatform: () => Promise<Platform>,
   listConnectors: () => Promise<Connector[]>,
+  listConnections: (slug?: string) => Promise<Connection[]>,
   getConnection: (slug: string) => Promise<Connection>,
   getConnectionOrConnector: (slug: string) => Promise<ConnectionShell>,
   getConnectionToken: (slug: string) => Promise<string | null>,
@@ -81,6 +83,7 @@ function xkit(domain: string): XkitJs {
     getAccessToken: configState.retrieveToken,
     getPlatform: configState.curryWithConfig(getPlatform),
     listConnectors: configState.curryWithConfig(listConnectors, listConnectorsPublic),
+    listConnections: configState.curryWithConfig(listConnections),
     getConnection: configState.curryWithConfig(getConnection),
     getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector, getConnectionPublic),
     getConnectionToken: configState.curryWithConfig(getConnectionToken),

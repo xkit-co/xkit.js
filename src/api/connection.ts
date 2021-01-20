@@ -146,3 +146,16 @@ export async function removeConnection(config: AuthorizedConfig, legacyQuery: Le
     method: 'DELETE'
   })
 }
+
+export async function listConnections(config: AuthorizedConfig, connectorSlug?: string): Promise<Connection[]> {
+  const path = connectorSlug ? `/connections?slug=${encodeURIComponent(connectorSlug)}` : '/connections'
+
+  const {
+    connections
+  } = await request(config, {
+    path,
+    method: 'GET'
+  })
+
+  return connections as Connection[]
+}
