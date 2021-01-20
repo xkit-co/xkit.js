@@ -5,7 +5,8 @@ import {
   createConnection,
   getConnection,
   removeConnection as removeAPIConnection,
-  Connection
+  Connection,
+  LegacyConnectionQuery
 } from './api/connection'
 import { createAuthorization } from './api/authorization'
 import {
@@ -46,9 +47,12 @@ async function reconnectWithoutWindow (emitter: Emitter, callWithConfig: configG
   return newConnection
 }
 
-export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, connectorSlug: string): Promise<void> {
-  await removeAPIConnection(config, connectorSlug)
-  emitter.emit(DISABLE_CONNECTION_EVENT, connectorSlug)
+export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, query: LegacyConnectionQuery): Promise<void> {
+  await removeAPIConnection(config, query)
+  // TODO: the payload that we emit used to always with a string connectorSlug.
+  // Now it can be a string or an object depending on the arguments to this function,
+  // which could break existing consumers.
+  emitter.emit(DISABLE_CONNECTION_EVENT, query)
 }
 
 export async function connect (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string): Promise<Connection> {

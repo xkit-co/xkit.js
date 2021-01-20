@@ -7,7 +7,7 @@ import { hasOwnProperty } from '../util'
 type IdQuery = { id: string }
 type SlugQuery = { slug: string }
 type ConnectionQuery = IdQuery | SlugQuery
-type LegacyConnectionQuery = string | ConnectionQuery
+export type LegacyConnectionQuery = string | ConnectionQuery
 
 export interface ConnectionOnly {
   id: string,
