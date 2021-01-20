@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { AuthorizedConfig } from './config'
 import { configGetter } from './config-state'
 import { Connector } from './api/connector'
@@ -71,9 +72,10 @@ export async function reconnect (emitter: Emitter, callWithConfig: configGetter,
   return newConnection
 }
 
-export async function addConnection (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string, id: string): Promise<Connection> {
+export async function addConnection (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string, id?: string): Promise<Connection> {
+  const connectionId = typeof id === 'string' ? id : uuidv4()
   const connection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
-    return connectWithoutWindow(emitter, callWithConfig, authWindow, connector, id)
+    return connectWithoutWindow(emitter, callWithConfig, authWindow, connector, connectionId)
   })
 
   return connection

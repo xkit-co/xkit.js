@@ -62,7 +62,7 @@ export interface XkitJs {
   removeConnection: (slug: string) => Promise<void>,
   connect: (connector: Connector | string) => Promise<Connection>,
   reconnect: (connection: Connection) => Promise<Connection>,
-  addConnection: (connector: Connector | string, id: string) => Promise<Connection>,
+  addConnection: (connector: Connector | string, id?: string) => Promise<Connection>,
   /** @deprecated Use `setAuthorizationFields(...)` instead. */
   setAuthorizationField(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
   setAuthorizationFields(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,

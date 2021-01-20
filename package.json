@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "event-target-shim": "^5.0.1",
-    "phoenix": "^1.5.3"
+    "phoenix": "^1.5.3",
+    "uuid": "^8.3.2"
   }
 }
