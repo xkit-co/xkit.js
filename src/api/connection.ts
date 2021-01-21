@@ -100,7 +100,7 @@ export async function getConnection(config: AuthorizedConfig, legacyQuery: Legac
 
 export async function getConnectionOrConnector(config: AuthorizedConfig, connectorSlug: string): Promise<Connection | ConnectionShell> {
   try {
-    const connection = await getConnection(config, connectorSlug)
+    const connection = await getConnection(config, { slug: connectorSlug })
     return connection
   } catch (e) {
     if (e instanceof IKitAPIError && e.statusCode === 404) {
