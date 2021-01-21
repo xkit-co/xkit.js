@@ -19,6 +19,7 @@ import Emitter from './emitter'
 
 const ENABLE_CONNECTION_EVENT = 'connection:enable'
 const DISABLE_CONNECTION_EVENT = 'connection:disable'
+const REMOVE_CONNECTION_EVENT = 'connection:remove'
 
 async function updateConnection(config: AuthorizedConfig, connection: Connection): Promise<Connection> {
   const newConnection = await getConnection(config, connection.connector.slug)
@@ -49,11 +50,9 @@ async function reconnectWithoutWindow (emitter: Emitter, callWithConfig: configG
 }
 
 export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, query: LegacyConnectionQuery): Promise<void> {
-  await removeAPIConnection(config, query)
-  // TODO: the payload that we emit used to always with a string connectorSlug.
-  // Now it can be a string or an object depending on the arguments to this function,
-  // which could break existing consumers.
-  emitter.emit(DISABLE_CONNECTION_EVENT, query)
+  const connection = await removeAPIConnection(config, query)
+  emitter.emit(DISABLE_CONNECTION_EVENT, connection.connector.slug)
+  emitter.emit(REMOVE_CONNECTION_EVENT, connection)
 }
 
 export async function connect (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string): Promise<Connection> {
