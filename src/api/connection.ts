@@ -2,7 +2,10 @@ import { AuthorizedConfig, IKitConfig } from '../config'
 import { request, IKitAPIError } from './request'
 import { Connector, getConnector, getConnectorPublic } from './connector'
 import { Authorization, AuthorizationStatus } from './authorization'
-import {  logger } from '../util'
+import {
+  hasOwnProperty,
+  logger
+} from '../util'
 
 type IdQuery = { id: string }
 type SlugQuery = { slug: string }
@@ -141,11 +144,15 @@ export async function createConnection(config: AuthorizedConfig, connectorSlug: 
   return connection as Connection
 }
 
-export async function removeConnection(config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<void> {
-  await request(config, {
+export async function removeConnection(config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<Connection> {
+  const {
+    connection
+  } = await request(config, {
     path: connectionPath(legacyQuery),
     method: 'DELETE'
   })
+
+  return connection as Connection
 }
 
 export async function listConnections(config: AuthorizedConfig, connectorSlug?: string): Promise<Connection[]> {
