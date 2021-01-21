@@ -15,11 +15,7 @@ import {
   prepareAuthWindowWithConfig,
   AuthWindow
 } from './authorize'
-import Emitter from './emitter'
-
-const ENABLE_CONNECTION_EVENT = 'connection:enable'
-const DISABLE_CONNECTION_EVENT = 'connection:disable'
-const REMOVE_CONNECTION_EVENT = 'connection:remove'
+import Emitter, { ENABLE_CONNECTION_EVENT, DISABLE_CONNECTION_EVENT, REMOVE_CONNECTION_EVENT } from './emitter'
 
 async function updateConnection(config: AuthorizedConfig, connection: Connection): Promise<Connection> {
   const newConnection = await getConnection(config, connection.connector.slug)
