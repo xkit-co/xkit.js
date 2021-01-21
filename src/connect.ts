@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { AuthorizedConfig } from './config'
 import { configGetter } from './config-state'
 import { Connector } from './api/connector'
@@ -5,7 +6,8 @@ import {
   createConnection,
   getConnection,
   removeConnection as removeAPIConnection,
-  Connection
+  Connection,
+  LegacyConnectionQuery
 } from './api/connection'
 import { createAuthorization } from './api/authorization'
 import {
@@ -13,19 +15,16 @@ import {
   prepareAuthWindowWithConfig,
   AuthWindow
 } from './authorize'
-import Emitter from './emitter'
-
-const ENABLE_CONNECTION_EVENT = 'connection:enable'
-const DISABLE_CONNECTION_EVENT = 'connection:disable'
+import Emitter, { ENABLE_CONNECTION_EVENT, DISABLE_CONNECTION_EVENT, REMOVE_CONNECTION_EVENT } from './emitter'
 
 async function updateConnection(config: AuthorizedConfig, connection: Connection): Promise<Connection> {
   const newConnection = await getConnection(config, connection.connector.slug)
   return newConnection
 }
 
-async function connectWithoutWindow (emitter: Emitter, callWithConfig: configGetter, authWindow: AuthWindow, connector: Connector | string): Promise<Connection> {
+async function connectWithoutWindow (emitter: Emitter, callWithConfig: configGetter, authWindow: AuthWindow, connector: Connector | string, id?: string): Promise<Connection> {
   const slug = typeof connector === 'string' ? connector : connector.slug
-  const connection = await callWithConfig(config => createConnection(config, slug))
+  const connection = await callWithConfig(config => createConnection(config, slug, id))
   const authorization = await authorize(callWithConfig, authWindow, connection.authorization)
   const newConnection = await callWithConfig(config => updateConnection(config, connection))
   emitter.emit(ENABLE_CONNECTION_EVENT, newConnection)
@@ -39,6 +38,8 @@ async function reconnectWithoutWindow (emitter: Emitter, callWithConfig: configG
     return newConnection
   }
 
+  // TODO: update reconnect to not create a new authorization directly, but instead just
+  // recreate the connection, which will repair the authorization on its own
   const authorization = await callWithConfig(config => createAuthorization(config, oldAuthorization.authorizer.prototype.slug))
   const newAuthorization = await authorize(callWithConfig, authWindow, authorization)
   const newConnection = await callWithConfig(config => updateConnection(config, connection))
@@ -46,9 +47,10 @@ async function reconnectWithoutWindow (emitter: Emitter, callWithConfig: configG
   return newConnection
 }
 
-export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, connectorSlug: string): Promise<void> {
-  await removeAPIConnection(config, connectorSlug)
-  emitter.emit(DISABLE_CONNECTION_EVENT, connectorSlug)
+export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, query: LegacyConnectionQuery): Promise<void> {
+  const connection = await removeAPIConnection(config, query)
+  emitter.emit(DISABLE_CONNECTION_EVENT, connection.connector.slug)
+  emitter.emit(REMOVE_CONNECTION_EVENT, connection)
 }
 
 export async function connect (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string): Promise<Connection> {
@@ -65,4 +67,13 @@ export async function reconnect (emitter: Emitter, callWithConfig: configGetter,
   })
 
   return newConnection
+}
+
+export async function addConnection (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string, id?: string): Promise<Connection> {
+  const connectionId = typeof id === 'string' ? id : uuidv4()
+  const connection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
+    return connectWithoutWindow(emitter, callWithConfig, authWindow, connector, connectionId)
+  })
+
+  return connection
 }

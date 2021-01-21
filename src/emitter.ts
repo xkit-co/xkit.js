@@ -1,5 +1,10 @@
 // Safari polyfill
 import { EventTarget as EventTargetShim } from 'event-target-shim'
+import { logger } from './util'
+
+export const ENABLE_CONNECTION_EVENT = 'connection:enable'
+export const DISABLE_CONNECTION_EVENT = 'connection:disable'
+export const REMOVE_CONNECTION_EVENT = 'connection:remove'
 
 type EventCallback = (payload: unknown) => void
 // Namespace listeners by event type
@@ -37,6 +42,11 @@ class Emitter {
     if (listeners.has(fn)) {
       throw new Error('Can not use the same function for the same type of event more than once.')
     }
+
+    if (type === DISABLE_CONNECTION_EVENT) {
+      logger.warn(`The ${DISABLE_CONNECTION_EVENT} event is deprecated. Please migrate to the ${REMOVE_CONNECTION_EVENT}.`)
+    }
+
     const listener = (event: CustomEvent) => {
       if (event.type === type) {
         fn(event.detail)

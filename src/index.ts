@@ -5,6 +5,7 @@ import { login, getAccessToken, logout } from './api/session'
 import {
   Connection,
   ConnectionShell,
+  listConnections,
   getConnection,
   getConnectionOrConnector,
   getConnectionPublic,
@@ -23,6 +24,7 @@ import {
 import {
   connect,
   reconnect,
+  addConnection,
   removeConnection
 } from './connect'
 import {
@@ -30,16 +32,9 @@ import {
   getPlatform
 } from './api/platform'
 import Emitter from './emitter'
-import { logger } from './util'
+import { logger, deprecate } from './util'
 
 type XkitEvents = 'connection:enable' | 'connection:disable' | 'config:update'
-
-function deprecate<T>(fn: (...args: unknown[]) => T, name?: string, alternative?: string): (...args: unknown[]) => T {
-  return function (...args: unknown[]): T {
-    logger.warn(`${name || 'this function'} is deprecated.${alternative ? ` Use ${alternative} instead.` : ''}`)
-    return fn.call(this, ...args)
-  }
-}
 
 export interface XkitJs {
   domain: string,
@@ -53,12 +48,14 @@ export interface XkitJs {
   getAccessToken: () => Promise<string>,
   getPlatform: () => Promise<Platform>,
   listConnectors: () => Promise<Connector[]>,
+  listConnections: (slug?: string) => Promise<Connection[]>,
   getConnection: (slug: string) => Promise<Connection>,
   getConnectionOrConnector: (slug: string) => Promise<ConnectionShell>,
   getConnectionToken: (slug: string) => Promise<string | null>,
   removeConnection: (slug: string) => Promise<void>,
   connect: (connector: Connector | string) => Promise<Connection>,
-  reconnect: (connection: Connection) => Promise<Connection>
+  reconnect: (connection: Connection) => Promise<Connection>,
+  addConnection: (connector: Connector | string, id?: string) => Promise<Connection>,
   /** @deprecated Use `setAuthorizationFields(...)` instead. */
   setAuthorizationField(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
   setAuthorizationFields(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
@@ -81,12 +78,14 @@ function xkit(domain: string): XkitJs {
     getAccessToken: configState.retrieveToken,
     getPlatform: configState.curryWithConfig(getPlatform),
     listConnectors: configState.curryWithConfig(listConnectors, listConnectorsPublic),
+    listConnections: configState.curryWithConfig(listConnections),
     getConnection: configState.curryWithConfig(getConnection),
     getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector, getConnectionPublic),
     getConnectionToken: configState.curryWithConfig(getConnectionToken),
     removeConnection: configState.curryWithConfig(removeConnection.bind(null, emitter)),
     connect: connect.bind(null, emitter, configState.callWithConfig),
     reconnect: reconnect.bind(null, emitter, configState.callWithConfig),
+    addConnection: addConnection.bind(null, emitter, configState.callWithConfig),
     setAuthorizationField: deprecate(configState.curryWithConfig(setAuthorizationFields), 'xkit.setAuthorizationField', 'xkit.setAuthorizationFields(...)'),
     setAuthorizationFields: configState.curryWithConfig(setAuthorizationFields),
     on: emitter.on.bind(emitter),

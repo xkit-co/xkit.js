@@ -25,6 +25,7 @@
     "@babel/preset-env": "~7.10.2",
     "@types/parcel-bundler": "^1.12.1",
     "@types/phoenix": "^1.4.4",
+    "@types/uuid": "^8.3.0",
     "parcel-bundler": "~1.12.4",
     "parcel-plugin-bundle-visualiser": "^1.2.0",
     "parcel-plugin-stdin": "^0.1.1",
@@ -32,6 +33,7 @@
   },
   "dependencies": {
     "event-target-shim": "^5.0.1",
-    "phoenix": "^1.5.3"
+    "phoenix": "^1.5.3",
+    "uuid": "^8.3.2"
   }
 }
