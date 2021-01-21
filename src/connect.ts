@@ -38,6 +38,8 @@ async function reconnectWithoutWindow (emitter: Emitter, callWithConfig: configG
     return newConnection
   }
 
+  // TODO: update reconnect to not create a new authorization directly, but instead just
+  // recreate the connection, which will repair the authorization on its own
   const authorization = await callWithConfig(config => createAuthorization(config, oldAuthorization.authorizer.prototype.slug))
   const newAuthorization = await authorize(callWithConfig, authWindow, authorization)
   const newConnection = await callWithConfig(config => updateConnection(config, connection))
