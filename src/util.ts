@@ -46,3 +46,14 @@ export const logger = {
   warn: console.warn.bind(console, 'Xkit:'),
   debug: process.env.NODE_ENV === 'development' ? console.debug.bind(console, 'Xkit:') : noop
 }
+
+export function deprecate<T>(fn: (...args: unknown[]) => T, name?: string, alternative?: string): (...args: unknown[]) => T {
+  return function (...args: unknown[]): T {
+    deprecationWarning(name, alternative)
+    return fn.call(this, ...args)
+  }
+}
+
+export function deprecationWarning (name?: string, alternative?: string): void {
+  logger.warn(`${name || 'this function'} is deprecated.${alternative ? ` Use ${alternative} instead.` : ''}`)
+}

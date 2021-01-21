@@ -32,16 +32,9 @@ import {
   getPlatform
 } from './api/platform'
 import Emitter from './emitter'
-import { logger } from './util'
+import { logger, deprecate } from './util'
 
 type XkitEvents = 'connection:enable' | 'connection:disable' | 'config:update'
-
-function deprecate<T>(fn: (...args: unknown[]) => T, name?: string, alternative?: string): (...args: unknown[]) => T {
-  return function (...args: unknown[]): T {
-    logger.warn(`${name || 'this function'} is deprecated.${alternative ? ` Use ${alternative} instead.` : ''}`)
-    return fn.call(this, ...args)
-  }
-}
 
 export interface XkitJs {
   domain: string,
