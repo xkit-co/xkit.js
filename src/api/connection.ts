@@ -2,7 +2,7 @@ import { AuthorizedConfig, IKitConfig } from '../config'
 import { request, IKitAPIError } from './request'
 import { Connector, getConnector, getConnectorPublic } from './connector'
 import { Authorization, AuthorizationStatus } from './authorization'
-import { hasOwnProperty } from '../util'
+import {  logger } from '../util'
 
 type IdQuery = { id: string }
 type SlugQuery = { slug: string }
@@ -43,6 +43,7 @@ function isLegacySlugQuery (query: LegacyConnectionQuery): query is string {
 
 function convertLegacyQuery (query: LegacyConnectionQuery): ConnectionQuery {
   if (isLegacySlugQuery(query)) {
+    logger.warn('Specifying a connection by its connector slug (e.g. "github") is deprecated. Use an object instead (e.g. `{ slug: "github" }`')
     return { slug: query }
   }
 
