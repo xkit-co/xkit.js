@@ -18,7 +18,7 @@ import {
 import Emitter, { ENABLE_CONNECTION_EVENT, DISABLE_CONNECTION_EVENT, REMOVE_CONNECTION_EVENT } from './emitter'
 
 async function updateConnection(config: AuthorizedConfig, connection: Connection): Promise<Connection> {
-  const newConnection = await getConnection(config, connection.connector.slug)
+  const newConnection = await getConnection(config, { id: connection.id })
   return newConnection
 }
 
