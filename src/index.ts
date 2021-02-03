@@ -25,6 +25,7 @@ import {
 import {
   connect,
   reconnect,
+  disconnect,
   addConnection,
   removeConnection
 } from './connect'
@@ -53,10 +54,11 @@ export interface XkitJs {
   getConnection: (query: LegacyConnectionQuery) => Promise<Connection>,
   getConnectionOrConnector: (slug: string) => Promise<ConnectionShell>,
   getConnectionToken: (query: LegacyConnectionQuery) => Promise<string | null>,
-  removeConnection: (query: LegacyConnectionQuery) => Promise<void>,
   connect: (connector: Connector | string) => Promise<Connection>,
   reconnect: (connection: Connection) => Promise<Connection>,
+  disconnect: (connector: Connector | string) => Promise<void>,
   addConnection: (connector: Connector | string, id?: string) => Promise<Connection>,
+  removeConnection: (query: LegacyConnectionQuery) => Promise<void>,
   /** @deprecated Use `setAuthorizationFields(...)` instead. */
   setAuthorizationField(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
   setAuthorizationFields(slug: string, state: string, params: UnknownJSON): Promise<Authorization>,
@@ -83,10 +85,11 @@ function xkit(domain: string): XkitJs {
     getConnection: configState.curryWithConfig(getConnection),
     getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector, getConnectionPublic),
     getConnectionToken: configState.curryWithConfig(getConnectionToken),
-    removeConnection: configState.curryWithConfig(removeConnection.bind(null, emitter)),
     connect: connect.bind(null, emitter, configState.callWithConfig),
     reconnect: reconnect.bind(null, emitter, configState.callWithConfig),
+    disconnect: configState.curryWithConfig(disconnect.bind(null, emitter)),
     addConnection: addConnection.bind(null, emitter, configState.callWithConfig),
+    removeConnection: configState.curryWithConfig(removeConnection.bind(null, emitter)),
     setAuthorizationField: deprecate(configState.curryWithConfig(setAuthorizationFields), 'xkit.setAuthorizationField', 'xkit.setAuthorizationFields(...)'),
     setAuthorizationFields: configState.curryWithConfig(setAuthorizationFields),
     on: emitter.on.bind(emitter),
