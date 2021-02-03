@@ -1,7 +1,5 @@
-import { IKitConfig } from './config'
 import StateManager from './config-state'
 import { UnknownJSON } from './api/request'
-import { login, getAccessToken, logout } from './api/session'
 import {
   Connection,
   ConnectionShell,
@@ -34,7 +32,7 @@ import {
   getPlatform
 } from './api/platform'
 import Emitter from './emitter'
-import { logger, deprecate } from './util'
+import { deprecate } from './util'
 
 type XkitEvents = 'connection:enable' | 'connection:disable' | 'config:update'
 
