@@ -29,6 +29,15 @@ interface ErrorMessage {
   error: string
 }
 
+class AuthorizationError extends Error {
+  code?: string
+
+  constructor(message: string, code?: string) {
+    super(message)
+    this.code = code
+  }
+}
+
 function isMessageError (msg: unknown): msg is ErrorMessage {
   if (typeof msg === 'object' &&
       msg !== null &&
@@ -119,7 +128,7 @@ function isAuthorizationReadyForSetup(auth: Authorization): auth is Authorizatio
 
 async function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, url: string): Promise<AuthWindow> {
   if (!authWindow.ref || authWindow.ref.closed) {
-    throw new Error('Cancelled authorization')
+    throw new AuthorizationError('Installation cancelled.')
   }
 
   // Wait every time time so we can be sure we're e.g. logged in
@@ -141,13 +150,13 @@ async function onAuthWindowClose(authWindow: AuthWindow): Promise<void> {
   await onWindowClose(authWindow.ref)
 
   if (authWindow.errors.length) {
-    throw new Error(authWindow.errors[0].error)
+    throw new AuthorizationError(authWindow.errors[0].error)
   }
 }
 
 export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWindowCallback<T>): Promise<T> {
   if (!config.token) {
-    throw new Error('Unauthorized')
+    throw new AuthorizationError('Unauthorized.')
   }
 
   const errors = captureMessages<ErrorMessage>(popupHost(config), isMessageError)
@@ -173,7 +182,7 @@ export function prepareAuthWindowWithConfig<T>(callWithConfig: configGetter, cal
 
 async function loadAuthWindow(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
   if (!isAuthorizationReadyForSetup(authorization)) {
-    throw new Error('Authorization is not in a state to be setup.')
+    throw new AuthorizationError('Authorization is not in a state to be setup.')
   }
 
   callWithConfig(config => replaceAuthWindowURL(config, authWindow, authorization.authorize_url))
@@ -183,7 +192,7 @@ async function loadAuthWindow(callWithConfig: configGetter, authWindow: AuthWind
   const newAuthorization = await callWithConfig(config => updateAuthorization(config, authorization))
 
   if (newAuthorization.status === AuthorizationStatus.awaiting_callback) {
-    throw new Error('Cancelled authorization')
+    throw new AuthorizationError('Installation cancelled.')
   }
 }
 
@@ -191,7 +200,7 @@ async function updateAuthorization(config: AuthorizedConfig, authorization: Auth
   const newAuthorization = await getAuthorization(config, authorization.authorizer.prototype.slug, authorization.id)
 
   if (newAuthorization.status === AuthorizationStatus.error) {
-    throw new Error('Encountered an unknown error during authorization')
+    throw new AuthorizationError(newAuthorization.error_message || 'Installation failed.', newAuthorization.error_code)
   }
 
   return newAuthorization
@@ -227,12 +236,12 @@ export function authorize(callWithConfig: configGetter, authWindow: AuthWindow, 
         })
         emitter.on('error', ({ error }) => {
           logger.debug(`Emitter received an error`, error)
-          reject(error instanceof Error ? error : new Error(error))
+          reject(error instanceof Error ? error : new AuthorizationError(error))
           emitter.removeAllListeners()
         })
         emitter.on('close', () => {
           logger.debug(`Emitter closed`)
-          reject(new Error('Subscriber closed unexpectedly'))
+          reject(new AuthorizationError('Installation failed. Network error.'))
           emitter.removeAllListeners()
         })
 
