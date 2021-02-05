@@ -44,6 +44,8 @@ export enum AuthorizationStatus {
 export interface Authorization {
   id: number | string,
   status: AuthorizationStatus,
+  error_code?: string,
+  error_message?: string,
   authorizer: Authorizer,
   access_token?: string,
   authorize_url?: AuthorizeUrl,
