@@ -47,18 +47,19 @@ async function reconnectWithoutWindow (emitter: Emitter, callWithConfig: configG
   return newConnection
 }
 
-export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, query: LegacyConnectionQuery): Promise<void> {
-  const connection = await removeAPIConnection(config, query)
-  emitter.emit(DISABLE_CONNECTION_EVENT, connection.connector.slug)
-  emitter.emit(REMOVE_CONNECTION_EVENT, connection)
-}
-
 export async function connect (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string): Promise<Connection> {
   const connection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
     return connectWithoutWindow(emitter, callWithConfig, authWindow, connector)
   })
 
   return connection
+}
+
+export async function disconnect (emitter: Emitter, config: AuthorizedConfig, connector: Connector | string): Promise<void> {
+  const slug = typeof connector === 'string' ? connector : connector.slug
+  const connection = await removeAPIConnection(config, { slug })
+  emitter.emit(DISABLE_CONNECTION_EVENT, connection.connector.slug)
+  emitter.emit(REMOVE_CONNECTION_EVENT, connection)
 }
 
 export async function reconnect (emitter: Emitter, callWithConfig: configGetter, connection: Connection): Promise<Connection> {
@@ -76,4 +77,10 @@ export async function addConnection (emitter: Emitter, callWithConfig: configGet
   })
 
   return connection
+}
+
+export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, query: LegacyConnectionQuery): Promise<void> {
+  const connection = await removeAPIConnection(config, query)
+  emitter.emit(DISABLE_CONNECTION_EVENT, connection.connector.slug)
+  emitter.emit(REMOVE_CONNECTION_EVENT, connection)
 }
