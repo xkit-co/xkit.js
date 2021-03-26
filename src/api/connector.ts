@@ -12,7 +12,8 @@ export interface PublicConnector {
 }
 
 export interface Connector extends PublicConnector {
-  connection?: ConnectionOnly
+  connection?: ConnectionOnly,
+  connections?: ConnectionOnly[]
 }
 
 export function connectorPath (slug: string): string {
