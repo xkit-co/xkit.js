@@ -9,7 +9,6 @@ import {
   Connection,
   LegacyConnectionQuery
 } from './api/connection'
-import { createAuthorization } from './api/authorization'
 import {
   authorize,
   prepareAuthWindowWithConfig,
@@ -26,22 +25,6 @@ async function connectWithoutWindow (emitter: Emitter, callWithConfig: configGet
   const slug = typeof connector === 'string' ? connector : connector.slug
   const connection = await callWithConfig(config => createConnection(config, slug, id))
   const authorization = await authorize(callWithConfig, authWindow, connection.authorization)
-  const newConnection = await callWithConfig(config => updateConnection(config, connection))
-  emitter.emit(ENABLE_CONNECTION_EVENT, newConnection)
-  return newConnection
-}
-
-async function reconnectWithoutWindow (emitter: Emitter, callWithConfig: configGetter, authWindow: AuthWindow, connection: Connection): Promise<Connection> {
-  const oldAuthorization = connection.authorization
-  if (!oldAuthorization) {
-    const newConnection = await connectWithoutWindow(emitter, callWithConfig, authWindow, connection.connector)
-    return newConnection
-  }
-
-  // TODO: update reconnect to not create a new authorization directly, but instead just
-  // recreate the connection, which will repair the authorization on its own
-  const authorization = await callWithConfig(config => createAuthorization(config, oldAuthorization.authorizer.prototype.slug))
-  const newAuthorization = await authorize(callWithConfig, authWindow, authorization)
   const newConnection = await callWithConfig(config => updateConnection(config, connection))
   emitter.emit(ENABLE_CONNECTION_EVENT, newConnection)
   return newConnection
@@ -64,7 +47,7 @@ export async function disconnect (emitter: Emitter, config: AuthorizedConfig, co
 
 export async function reconnect (emitter: Emitter, callWithConfig: configGetter, connection: Connection): Promise<Connection> {
   const newConnection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
-    return reconnectWithoutWindow(emitter, callWithConfig, authWindow, connection)
+    return connectWithoutWindow(emitter, callWithConfig, authWindow, connection.connector, connection.id)
   })
 
   return newConnection
