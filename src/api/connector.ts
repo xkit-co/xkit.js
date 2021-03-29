@@ -8,7 +8,8 @@ export interface PublicConnector {
   short_description: string,
   mark_url: string,
   about?: string,
-  description?: string
+  description?: string,
+  supports_multiple_connections: boolean
 }
 
 export interface Connector extends PublicConnector {
