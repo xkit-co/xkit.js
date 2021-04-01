@@ -14,7 +14,9 @@ import {
   Connector,
   connectorPath,
   listConnectors,
-  listConnectorsPublic
+  listConnectorsPublic,
+  getConnector,
+  getConnectorPublic
 } from './api/connector'
 import {
   setAuthorizationFields,
@@ -48,6 +50,7 @@ export interface XkitJs {
   getAccessToken: () => Promise<string>,
   getPlatform: () => Promise<Platform>,
   listConnectors: () => Promise<Connector[]>,
+  getConnector: (slug: string) => Promise<Connector>,
   listConnections: (slug?: string) => Promise<Connection[]>,
   getConnection: (query: LegacyConnectionQuery) => Promise<Connection>,
   getConnectionOrConnector: (slug: string) => Promise<ConnectionShell>,
@@ -79,6 +82,7 @@ function xkit(domain: string): XkitJs {
     getAccessToken: configState.retrieveToken,
     getPlatform: configState.curryWithConfig(getPlatform),
     listConnectors: configState.curryWithConfig(listConnectors, listConnectorsPublic),
+    getConnector: configState.curryWithConfig(getConnector, getConnectorPublic),
     listConnections: configState.curryWithConfig(listConnections),
     getConnection: configState.curryWithConfig(getConnection),
     getConnectionOrConnector: configState.curryWithConfig(getConnectionOrConnector, getConnectionPublic),

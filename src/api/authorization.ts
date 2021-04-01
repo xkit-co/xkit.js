@@ -43,6 +43,7 @@ export enum AuthorizationStatus {
 
 export interface Authorization {
   id: number | string,
+  display_label?: string,
   status: AuthorizationStatus,
   error_code?: string,
   error_message?: string,
