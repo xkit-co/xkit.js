@@ -16,7 +16,9 @@
     "build-lib": "rm -rf lib && tsc --outDir lib --declaration",
     "prepublishOnly": "npm run build-lib",
     "test": "tsc --noEmit",
-    "repo": "echo $npm_package_repository_url"
+    "repo": "echo $npm_package_repository_url",
+    "lint": "npx ts-standard",
+    "lint-fix": "npx ts-standard --fix"
   },
   "author": "Xkit <dev@xkit.co>",
   "license": "MIT",
@@ -29,6 +31,7 @@
     "parcel-bundler": "~1.12.4",
     "parcel-plugin-bundle-visualiser": "^1.2.0",
     "parcel-plugin-stdin": "^0.1.1",
+    "ts-standard": "^10.0.0",
     "typescript": "~3.9.5"
   },
   "dependencies": {
