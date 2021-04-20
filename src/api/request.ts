@@ -1,5 +1,6 @@
 import { IKitConfig } from '../config'
 import { logger } from '../util'
+import { version } from '../version'
 
 const API_PATH = '/api/platform_user'
 // Theoretically we can support http in development, but with Cookie policies
@@ -18,8 +19,10 @@ interface RequestOptions {
   body?: UnknownJSON
 }
 
+type XkitHeader = 'Accept' | 'Authorization' | 'Content-Type' | 'Xkit-Js-Version'
+
 interface FetchOptions {
-  headers: Partial<Record<'Accept' | 'Authorization' | 'Content-Type', string>>,
+  headers: Partial<Record<XkitHeader, string>>
   credentials?: 'include'
   method?: RequestMethod
   body?: string
@@ -56,6 +59,7 @@ function getFetchOptions (config: IKitConfig, options: RequestOptions): FetchOpt
     // are not ignored
     credentials: 'include',
     headers: {
+      'Xkit-Js-Version': version,
       Accept: 'application/json'
     }
   }
