@@ -20,13 +20,13 @@ interface UndocumentedSocket extends Socket {
 
 let socket: UndocumentedSocket | null
 
-function resetSocket(socket: UndocumentedSocket): UndocumentedSocket {
+function resetSocket (socket: UndocumentedSocket): UndocumentedSocket {
   socket.reconnectTimer.reset()
   socket.disconnect(() => {})
   return socket
 }
 
-async function initializeSocket(config: AuthorizedConfig): Promise<UndocumentedSocket> {
+async function initializeSocket (config: AuthorizedConfig): Promise<UndocumentedSocket> {
   if (socket) {
     if (socket.isConnected) {
       return socket
@@ -57,7 +57,7 @@ async function initializeSocket(config: AuthorizedConfig): Promise<UndocumentedS
         assertToken(config)
           .then(() => {
             // if this call succeeded, it's a socket specific issue
-            reject(new Error(`Failed to connect to server`))
+            reject(new Error('Failed to connect to server'))
           })
           .catch(reject)
       } else {
@@ -71,7 +71,7 @@ async function initializeSocket(config: AuthorizedConfig): Promise<UndocumentedS
   })
 }
 
-function promisifyPush(push: Push): Promise<unknown> {
+function promisifyPush (push: Push): Promise<unknown> {
   return new Promise((resolve, reject) => {
     push
       .receive('ok', (response) => {
@@ -88,21 +88,21 @@ function promisifyPush(push: Push): Promise<unknown> {
   })
 }
 
-export async function subscribe(config: AuthorizedConfig, topic: string): Promise<[Channel, unknown]> {
+export async function subscribe (config: AuthorizedConfig, topic: string): Promise<[Channel, unknown]> {
   const socket = await initializeSocket(config)
-  logger.debug(`Initialized socket`, socket)
+  logger.debug('Initialized socket', socket)
   const channel = socket.channel(topic)
   channel.onError((err) => {
-    logger.debug(`Channel error`, err)
+    logger.debug('Channel error', err)
   })
-  channel.onClose(() => logger.debug(`Channel closed`))
-  logger.debug(`Initialized channel`, channel)
+  channel.onClose(() => logger.debug('Channel closed'))
+  logger.debug('Initialized channel', channel)
 
   const reply = await promisifyPush(channel.join())
-  logger.debug(`Got reply`, reply)
+  logger.debug('Got reply', reply)
   return [channel, reply]
 }
 
-export async function leave(channel: Channel): Promise<void> {
+export async function leave (channel: Channel): Promise<void> {
   await promisifyPush(channel.leave())
 }

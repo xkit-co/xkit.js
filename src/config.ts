@@ -1,11 +1,11 @@
 type hostname = string
 
 export interface IKitConfig {
-  domain: hostname,
+  domain: hostname
   token?: string
 }
 
 export interface AuthorizedConfig {
-  domain: hostname,
+  domain: hostname
   token: string
 }

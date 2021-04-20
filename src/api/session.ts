@@ -1,7 +1,7 @@
 import { IKitConfig, AuthorizedConfig } from '../config'
 import { request } from './request'
 
-export async function login(config: IKitConfig, token: string): Promise<AuthorizedConfig> {
+export async function login (config: IKitConfig, token: string): Promise<AuthorizedConfig> {
   const configWithToken = Object.assign({}, config, { token })
 
   await request(configWithToken, {
@@ -12,14 +12,14 @@ export async function login(config: IKitConfig, token: string): Promise<Authoriz
   return configWithToken as AuthorizedConfig
 }
 
-export async function logout(config: IKitConfig): Promise<void> {
+export async function logout (config: IKitConfig): Promise<void> {
   await request(config, {
     path: '/sessions',
     method: 'DELETE'
   })
 }
 
-export async function getAccessToken(config: IKitConfig): Promise<string> {
+export async function getAccessToken (config: IKitConfig): Promise<string> {
   const {
     access_token
   } = await request(config, {
@@ -34,7 +34,7 @@ export async function getAccessToken(config: IKitConfig): Promise<string> {
   return access_token as string
 }
 
-export async function getOneTimeToken(config: AuthorizedConfig): Promise<string> {
+export async function getOneTimeToken (config: AuthorizedConfig): Promise<string> {
   const { ott } = await request(config, {
     path: '/sessions/ott',
     method: 'POST'
@@ -47,7 +47,7 @@ export async function getOneTimeToken(config: AuthorizedConfig): Promise<string>
   return ott as string
 }
 
-export async function assertToken(config: IKitConfig): Promise<void> {
+export async function assertToken (config: IKitConfig): Promise<void> {
   await request(config, {
     path: '/session'
   })

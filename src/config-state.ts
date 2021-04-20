@@ -16,7 +16,7 @@ interface InitialConfigState extends IKitConfig {
 }
 
 export interface ConfigState extends InitialConfigState {
-  retrievingToken?: Promise<string>,
+  retrievingToken?: Promise<string>
   loading: boolean
 }
 
@@ -28,7 +28,7 @@ function isUnauthorized (e: Error): boolean {
 }
 
 class StateManager {
-  private state: ConfigState
+  private readonly state: ConfigState
   emitter: Emitter
 
   constructor (initialState: InitialConfigState, emitter: Emitter) {
@@ -194,7 +194,7 @@ class StateManager {
         this.setState({ loading: true })
         await this.retrieveToken()
       } catch (e) {
-        logger.debug(`User is not yet logged into Xkit.`, e)
+        logger.debug('User is not yet logged into Xkit.', e)
       } finally {
         this.setState({ loading: false })
       }

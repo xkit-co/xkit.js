@@ -6,7 +6,6 @@ const API_PATH = '/api/platform_user'
 // as they are, we are better off going all https
 const SCHEME = 'https:'
 
-
 export interface UnknownJSON {
   [index: string]: unknown
 }
@@ -14,14 +13,14 @@ export interface UnknownJSON {
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
 interface RequestOptions {
-  path: string,
-  method?: RequestMethod,
+  path: string
+  method?: RequestMethod
   body?: UnknownJSON
 }
 
 interface FetchOptions {
   headers: Partial<Record<'Accept' | 'Authorization' | 'Content-Type', string>>,
-  credentials?: 'include',
+  credentials?: 'include'
   method?: RequestMethod
   body?: string
 }
@@ -33,7 +32,7 @@ export class IKitAPIError extends Error {
   statusText: string
   debugMessage?: string
 
-  constructor(message: string, res: Response, debugMessage?: string) {
+  constructor (message: string, res: Response, debugMessage?: string) {
     super()
     // Sigh: https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
     Object.setPrototypeOf(this, IKitAPIError.prototype)
@@ -42,7 +41,7 @@ export class IKitAPIError extends Error {
     this.statusCode = res.status
     this.statusText = res.statusText
     this.debugMessage = debugMessage
-    // @ts-ignore
+    // @ts-expect-error
     if (process.env.NODE_ENV === 'development') {
       if (this.debugMessage) {
         this.message = `${this.message} (debug: ${this.debugMessage})`
@@ -51,13 +50,13 @@ export class IKitAPIError extends Error {
   }
 }
 
-function getFetchOptions(config: IKitConfig, options: RequestOptions): FetchOptions {
+function getFetchOptions (config: IKitConfig, options: RequestOptions): FetchOptions {
   const fetchOptions: FetchOptions = {
     // So that cookies get sent and included, and returned cookies
     // are not ignored
     credentials: 'include',
     headers: {
-      'Accept': 'application/json'
+      Accept: 'application/json'
     }
   }
 
@@ -71,19 +70,19 @@ function getFetchOptions(config: IKitConfig, options: RequestOptions): FetchOpti
   }
 
   if (config.token) {
-    fetchOptions.headers['Authorization'] = `Bearer ${config.token}`
+    fetchOptions.headers.Authorization = `Bearer ${config.token}`
   }
 
   return fetchOptions
 }
 
-async function parseData(res: Response): Promise<UnknownJSON> {
+async function parseData (res: Response): Promise<UnknownJSON> {
   let data
 
   try {
     data = await res.json()
     if (!data) {
-      throw new Error("No data in response")
+      throw new Error('No data in response')
     }
   } catch (e) {
     if (!res.ok) {
@@ -98,12 +97,12 @@ async function parseData(res: Response): Promise<UnknownJSON> {
   return data
 }
 
-async function friendlyFetch(url: string, options: FetchOptions): Promise<ReturnType<typeof fetch>> {
+async function friendlyFetch (url: string, options: FetchOptions): Promise<ReturnType<typeof fetch>> {
   try {
     const res = await fetch(url, options)
     return res
   } catch (e) {
-    if (e.message === "Failed to fetch") {
+    if (e.message === 'Failed to fetch') {
       logger.warn(
 `Request failed.
 If the error message above indicates a CORS policy error, you may need to configure the Valid Web Origins to include "${window.location.origin}"
@@ -114,7 +113,7 @@ Settings: https://app.xkit.co/settings`)
   }
 }
 
-export async function request(config: IKitConfig, options: RequestOptions): Promise<UnknownJSON> {
+export async function request (config: IKitConfig, options: RequestOptions): Promise<UnknownJSON> {
   const res = await friendlyFetch(
     `${SCHEME}//${config.domain}${API_PATH}${options.path}`,
     getFetchOptions(config, options)

@@ -16,7 +16,7 @@ import {
 } from './authorize'
 import Emitter, { ENABLE_CONNECTION_EVENT, DISABLE_CONNECTION_EVENT, REMOVE_CONNECTION_EVENT } from './emitter'
 
-async function updateConnection(config: AuthorizedConfig, connection: Connection): Promise<Connection> {
+async function updateConnection (config: AuthorizedConfig, connection: Connection): Promise<Connection> {
   const newConnection = await getConnection(config, { id: connection.id })
   return newConnection
 }
@@ -62,7 +62,7 @@ export async function addConnection (emitter: Emitter, callWithConfig: configGet
   return connection
 }
 
-export async function removeConnection(emitter: Emitter, config: AuthorizedConfig, query: LegacyConnectionQuery): Promise<void> {
+export async function removeConnection (emitter: Emitter, config: AuthorizedConfig, query: LegacyConnectionQuery): Promise<void> {
   const connection = await removeAPIConnection(config, query)
   emitter.emit(DISABLE_CONNECTION_EVENT, connection.connector.slug)
   emitter.emit(REMOVE_CONNECTION_EVENT, connection)

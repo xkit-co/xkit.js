@@ -6,14 +6,14 @@ export function delay (ms: number): Promise<boolean> {
 
 function noop () {}
 
-export async function onWindowClose(window: Window, fn = noop, pollDelay = 200): Promise<void> {
+export async function onWindowClose (window: Window, fn = noop, pollDelay = 200): Promise<void> {
   while (window != null && !window.closed) {
     await delay(pollDelay)
   }
   fn()
 }
 
-export async function silent(fn: Function): Promise<void> {
+export async function silent (fn: Function): Promise<void> {
   try {
     await fn()
   } catch (e) {
@@ -23,10 +23,10 @@ export async function silent(fn: Function): Promise<void> {
 
 type filterMsg<T> = (msg: unknown) => msg is T
 
-export function captureMessages<T>(origin: string, filter: filterMsg<T>): T[] {
+export function captureMessages<T> (origin: string, filter: filterMsg<T>): T[] {
   const messages: T[] = []
   window.addEventListener('message', (event) => {
-    logger.debug(`incoming message`, event)
+    logger.debug('incoming message', event)
     if (event.origin === origin && filter(event.data)) {
       messages.push(event.data)
     }
@@ -36,7 +36,7 @@ export function captureMessages<T>(origin: string, filter: filterMsg<T>): T[] {
 
 // thx: https://fettblog.eu/typescript-hasownproperty/
 export function hasOwnProperty<X extends {}, Y extends PropertyKey>
-  (obj: X, prop: Y): obj is X & Record<Y, unknown> {
+(obj: X, prop: Y): obj is X & Record<Y, unknown> {
   return obj.hasOwnProperty(prop)
 }
 
@@ -47,7 +47,7 @@ export const logger = {
   debug: process.env.NODE_ENV === 'development' ? console.debug.bind(console, 'Xkit:') : noop
 }
 
-export function deprecate<T>(fn: (...args: unknown[]) => T, name?: string, alternative?: string): (...args: unknown[]) => T {
+export function deprecate<T> (fn: (...args: unknown[]) => T, name?: string, alternative?: string): (...args: unknown[]) => T {
   return function (...args: unknown[]): T {
     deprecationWarning(name, alternative)
     return fn.call(this, ...args)

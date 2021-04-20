@@ -7,14 +7,14 @@ import {
   logger
 } from '../util'
 
-type IdQuery = { id: string }
-type SlugQuery = { slug: string }
+interface IdQuery { id: string }
+interface SlugQuery { slug: string }
 type ConnectionQuery = IdQuery | SlugQuery
 export type LegacyConnectionQuery = string | ConnectionQuery
 
 export interface ConnectionOnly {
-  id: string,
-  enabled: boolean,
+  id: string
+  enabled: boolean
   authorization?: Authorization
 }
 
@@ -53,7 +53,7 @@ function convertLegacyQuery (query: LegacyConnectionQuery): ConnectionQuery {
   return query
 }
 
-export function isConnection(conn: ConnectionOnly | ConnectionShell | undefined): conn is Connection {
+export function isConnection (conn: ConnectionOnly | ConnectionShell | undefined): conn is Connection {
   return conn && hasOwnProperty(conn, 'enabled') && conn.enabled != null
 }
 
@@ -71,7 +71,7 @@ function connectionPath (legacyQuery: LegacyConnectionQuery): string {
   throw new Error(`Unknown query type for connection: ${query}`)
 }
 
-export function connectionStatus(conn: ConnectionOnly | ConnectionShell | undefined): ConnectionStatus {
+export function connectionStatus (conn: ConnectionOnly | ConnectionShell | undefined): ConnectionStatus {
   if (!isConnection(conn)) {
     return ConnectionStatus.NotInstalled
   }
@@ -88,7 +88,7 @@ export function connectionStatus(conn: ConnectionOnly | ConnectionShell | undefi
   return ConnectionStatus.Error
 }
 
-export async function getConnection(config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<Connection> {
+export async function getConnection (config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<Connection> {
   const {
     connection
   } = await request(config, {
@@ -98,7 +98,7 @@ export async function getConnection(config: AuthorizedConfig, legacyQuery: Legac
   return connection as Connection
 }
 
-export async function getConnectionOrConnector(config: AuthorizedConfig, connectorSlug: string): Promise<Connection | ConnectionShell> {
+export async function getConnectionOrConnector (config: AuthorizedConfig, connectorSlug: string): Promise<Connection | ConnectionShell> {
   try {
     const connection = await getConnection(config, { slug: connectorSlug })
     return connection
@@ -111,12 +111,12 @@ export async function getConnectionOrConnector(config: AuthorizedConfig, connect
   }
 }
 
-export async function getConnectionPublic(config: IKitConfig, connectorSlug: string): Promise<ConnectionShell> {
+export async function getConnectionPublic (config: IKitConfig, connectorSlug: string): Promise<ConnectionShell> {
   const connector = await getConnectorPublic(config, connectorSlug)
   return { connector }
 }
 
-export async function getConnectionToken(config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<string | null> {
+export async function getConnectionToken (config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<string | null> {
   try {
     const connection = await getConnection(config, legacyQuery)
     if (connection.enabled && connection.authorization && connection.authorization.access_token) {
@@ -130,7 +130,7 @@ export async function getConnectionToken(config: AuthorizedConfig, legacyQuery: 
   return null
 }
 
-export async function createConnection(config: AuthorizedConfig, connectorSlug: string, connectionId?: string): Promise<Connection> {
+export async function createConnection (config: AuthorizedConfig, connectorSlug: string, connectionId?: string): Promise<Connection> {
   const {
     connection
   } = await request(config, {
@@ -144,7 +144,7 @@ export async function createConnection(config: AuthorizedConfig, connectorSlug: 
   return connection as Connection
 }
 
-export async function removeConnection(config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<Connection> {
+export async function removeConnection (config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<Connection> {
   const {
     connection
   } = await request(config, {
@@ -155,7 +155,7 @@ export async function removeConnection(config: AuthorizedConfig, legacyQuery: Le
   return connection as Connection
 }
 
-export async function listConnections(config: AuthorizedConfig, connectorSlug?: string): Promise<Connection[]> {
+export async function listConnections (config: AuthorizedConfig, connectorSlug?: string): Promise<Connection[]> {
   const path = connectorSlug ? `/connections?slug=${encodeURIComponent(connectorSlug)}` : '/connections'
 
   const {

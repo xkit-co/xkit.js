@@ -3,17 +3,17 @@ import { request } from './request'
 import { ConnectionOnly } from './connection'
 
 export interface PublicConnector {
-  name: string,
-  slug: string,
-  short_description: string,
-  mark_url: string,
-  about?: string,
-  description?: string,
+  name: string
+  slug: string
+  short_description: string
+  mark_url: string
+  about?: string
+  description?: string
   supports_multiple_connections: boolean
 }
 
 export interface Connector extends PublicConnector {
-  connection?: ConnectionOnly,
+  connection?: ConnectionOnly
   connections?: ConnectionOnly[]
 }
 
@@ -25,7 +25,7 @@ export function publicConnectorPath (slug: string): string {
   return `/platform/connectors/${slug}`
 }
 
-export async function listConnectors(config: AuthorizedConfig): Promise<Connector[]> {
+export async function listConnectors (config: AuthorizedConfig): Promise<Connector[]> {
   const {
     connectors
   } = await request(config, {
@@ -35,7 +35,7 @@ export async function listConnectors(config: AuthorizedConfig): Promise<Connecto
   return connectors as Connector[]
 }
 
-export async function listConnectorsPublic(config: IKitConfig): Promise<PublicConnector[]> {
+export async function listConnectorsPublic (config: IKitConfig): Promise<PublicConnector[]> {
   const {
     connectors
   } = await request(config, {
@@ -45,7 +45,7 @@ export async function listConnectorsPublic(config: IKitConfig): Promise<PublicCo
   return connectors as PublicConnector[]
 }
 
-export async function getConnector(config: AuthorizedConfig, connectorSlug: string): Promise<Connector> {
+export async function getConnector (config: AuthorizedConfig, connectorSlug: string): Promise<Connector> {
   const {
     connector
   } = await request(config, {
@@ -55,7 +55,7 @@ export async function getConnector(config: AuthorizedConfig, connectorSlug: stri
   return connector as Connector
 }
 
-export async function getConnectorPublic(config: IKitConfig, connectorSlug: string): Promise<PublicConnector> {
+export async function getConnectorPublic (config: IKitConfig, connectorSlug: string): Promise<PublicConnector> {
   const {
     connector
   } = await request(config, {

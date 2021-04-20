@@ -32,7 +32,7 @@ interface ErrorMessage {
 class AuthorizationError extends Error {
   code?: string
 
-  constructor(message: string, code?: string) {
+  constructor (message: string, code?: string) {
     super(message)
     this.code = code
   }
@@ -49,8 +49,8 @@ function isMessageError (msg: unknown): msg is ErrorMessage {
 }
 
 export interface AuthWindow {
-  errors: ErrorMessage[],
-  ref: Window,
+  errors: ErrorMessage[]
+  ref: Window
   ready: () => Promise<void>
 }
 
@@ -74,19 +74,19 @@ const AUTH_POP_PARAMS: string = Object.entries({
   top: SCREEN ? SCREEN.height / 2 - AUTH_POP_HEIGHT_PX / 2 : 0
 }).reduce((paramStr: string, [key, val]: [string, string | number]) => `${paramStr},${key}=${val}`, '')
 
-function windowName() {
+function windowName () {
   return 'ikit:authorization'
 }
 
-function popupHost(config: IKitConfig): string {
+function popupHost (config: IKitConfig): string {
   return `https://${config.domain}`
 }
 
-function popupOrigin(config: IKitConfig): string {
+function popupOrigin (config: IKitConfig): string {
   return new URL(popupHost(config)).origin
 }
 
-function loadingURL(config: IKitConfig, authorization?: Authorization, token?: string): string {
+function loadingURL (config: IKitConfig, authorization?: Authorization, token?: string): string {
   const params: Record<string, string> = { opener_origin: window.location.origin }
   if (token) { params.token = token }
   const queryString = Object.keys(params).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
@@ -97,9 +97,9 @@ function loadingURL(config: IKitConfig, authorization?: Authorization, token?: s
 // Since Electron doesn't give us access to the child window, we
 // wait for confirmation that it has loaded before attempting to
 // send it a message.
-function monitorAuthWindowReady(config: IKitConfig) {
+function monitorAuthWindowReady (config: IKitConfig) {
   let authWindowReady = false
-  let waiters: Function[] = []
+  const waiters: Function[] = []
 
   const listener = (event: MessageEvent) => {
     if (event.origin === popupOrigin(config) && event.data === POPUP_READY_MESSAGE) {
@@ -122,11 +122,11 @@ function monitorAuthWindowReady(config: IKitConfig) {
   }
 }
 
-function isAuthorizationReadyForSetup(auth: Authorization): auth is AuthorizationToBeSetup {
+function isAuthorizationReadyForSetup (auth: Authorization): auth is AuthorizationToBeSetup {
   return auth.status === AuthorizationStatus.awaiting_callback && Boolean(auth.authorize_url)
 }
 
-async function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, url: string): Promise<AuthWindow> {
+async function replaceAuthWindowURL (config: IKitConfig, authWindow: AuthWindow, url: string): Promise<AuthWindow> {
   if (!authWindow.ref || authWindow.ref.closed) {
     throw new AuthorizationError('Installation cancelled.')
   }
@@ -146,15 +146,15 @@ async function replaceAuthWindowURL(config: IKitConfig, authWindow: AuthWindow, 
   return authWindow
 }
 
-async function onAuthWindowClose(authWindow: AuthWindow): Promise<void> {
+async function onAuthWindowClose (authWindow: AuthWindow): Promise<void> {
   await onWindowClose(authWindow.ref)
 
-  if (authWindow.errors.length) {
+  if (authWindow.errors.length > 0) {
     throw new AuthorizationError(authWindow.errors[0].error)
   }
 }
 
-export async function prepareAuthWindow<T>(config: IKitConfig, callback: AuthWindowCallback<T>): Promise<T> {
+export async function prepareAuthWindow<T> (config: IKitConfig, callback: AuthWindowCallback<T>): Promise<T> {
   if (!config.token) {
     throw new AuthorizationError('Unauthorized.')
   }
@@ -180,7 +180,7 @@ export function prepareAuthWindowWithConfig<T>(callWithConfig: configGetter, cal
   return callWithConfig((config) => prepareAuthWindow(config, callback))
 }
 
-async function loadAuthWindow(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
+async function loadAuthWindow (callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
   if (!isAuthorizationReadyForSetup(authorization)) {
     throw new AuthorizationError('Authorization is not in a state to be setup.')
   }
@@ -196,7 +196,7 @@ async function loadAuthWindow(callWithConfig: configGetter, authWindow: AuthWind
   }
 }
 
-async function updateAuthorization(config: AuthorizedConfig, authorization: Authorization): Promise<Authorization> {
+async function updateAuthorization (config: AuthorizedConfig, authorization: Authorization): Promise<Authorization> {
   const newAuthorization = await getAuthorization(config, authorization.authorizer.prototype.slug, authorization.id)
 
   if (newAuthorization.status === AuthorizationStatus.error) {
@@ -207,7 +207,7 @@ async function updateAuthorization(config: AuthorizedConfig, authorization: Auth
 }
 
 // TODO: make this concurrent with loading the connection?
-async function loginToAuthWindow(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
+async function loginToAuthWindow (callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
   const oneTimeToken = await callWithConfig(getOneTimeToken)
   return callWithConfig(config => {
     const url = loadingURL(config, authorization, oneTimeToken)
@@ -235,12 +235,12 @@ export function authorize(callWithConfig: configGetter, authWindow: AuthWindow, 
           }
         })
         emitter.on('error', ({ error }) => {
-          logger.debug(`Emitter received an error`, error)
+          logger.debug('Emitter received an error', error)
           reject(error instanceof Error ? error : new AuthorizationError(error))
           emitter.removeAllListeners()
         })
         emitter.on('close', () => {
-          logger.debug(`Emitter closed`)
+          logger.debug('Emitter closed')
           reject(new AuthorizationError('Installation failed. Network error.'))
           emitter.removeAllListeners()
         })

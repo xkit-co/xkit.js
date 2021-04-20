@@ -30,7 +30,7 @@ class Emitter {
     this.listeners = new Map()
   }
 
-  _getListeners(type: string): Listeners {
+  _getListeners (type: string): Listeners {
     if (!this.listeners.has(type)) {
       this.listeners.set(type, new Map())
     }
@@ -66,11 +66,11 @@ class Emitter {
     listeners.delete(fn)
   }
 
-  emit(type: string, payload?: unknown) {
+  emit (type: string, payload?: unknown) {
     this.target.dispatchEvent(new CustomEvent(type, { detail: payload }))
   }
 
-  removeAllListeners() {
+  removeAllListeners () {
     this.listeners.forEach((listeners, type) => {
       listeners.forEach((_, userListener) => {
         this.off(type, userListener)
@@ -81,4 +81,3 @@ class Emitter {
 }
 
 export default Emitter
-  
