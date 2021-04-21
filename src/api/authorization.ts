@@ -72,17 +72,6 @@ export function loadingPath (authorization?: Authorization): string {
   return `/authorizations/${authorization.authorizer.prototype.slug}/loading`
 }
 
-export async function createAuthorization (config: AuthorizedConfig, prototypeSlug: string): Promise<Authorization> {
-  const {
-    authorization
-  } = await request(config, {
-    path: `/authorizations/${prototypeSlug}`,
-    method: 'POST'
-  })
-
-  return authorization as Authorization
-}
-
 export async function setAuthorizationFields (config: AuthorizedConfig, prototypeSlug: string, state: string, params: UnknownJSON): Promise<Authorization> {
   const {
     authorization
