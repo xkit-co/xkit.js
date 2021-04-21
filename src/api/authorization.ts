@@ -50,7 +50,9 @@ export interface Authorization {
   authorizer: Authorizer
   access_token?: string
   authorize_url?: AuthorizeUrl
+  /** @deprecated Use `connector` instead. */
   initiating_connector?: PublicConnector
+  connector?: PublicConnector
   state?: string
 }
 
