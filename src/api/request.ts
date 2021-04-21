@@ -1,6 +1,6 @@
 import { IKitConfig } from '../config'
 import { logger } from '../util'
-import { version } from '../version'
+import { version } from '../../package.json'
 
 const API_PATH = '/api/platform_user'
 // Theoretically we can support http in development, but with Cookie policies
