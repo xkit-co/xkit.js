@@ -1,5 +1,9 @@
 import { IKitConfig } from '../config'
 import { logger } from '../util'
+// tsc looks for the common root of all the imported files and this import
+// changes it from xkit-js/src/ to xkit-js/ which affects the structure
+// of the output dir. We fix that by manually moving the build files one
+// level up in the build script.
 import { version } from '../../package.json'
 
 const API_PATH = '/api/platform_user'
@@ -44,7 +48,7 @@ export class IKitAPIError extends Error {
     this.statusCode = res.status
     this.statusText = res.statusText
     this.debugMessage = debugMessage
-    // @ts-expect-error
+    // @ts-ignore
     if (process.env.NODE_ENV === 'development') {
       if (this.debugMessage) {
         this.message = `${this.message} (debug: ${this.debugMessage})`
