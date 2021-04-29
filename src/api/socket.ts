@@ -41,7 +41,13 @@ async function initializeSocket (config: AuthorizedConfig): Promise<Undocumented
   }
 
   return new Promise((resolve, reject) => {
-    socket = new Socket(`${SCHEME}//${config.domain}${SOCKET_ENDPOINT}`, { params }) as UndocumentedSocket
+    const opts = {
+      params,
+      // The default value of 30 seconds is not enough to keep the connection alive -
+      // the proxy that handles custom domains terminates the connection after 30 seconds.
+      heartbeatIntervalMs: 15000
+    }
+    socket = new Socket(`${SCHEME}//${config.domain}${SOCKET_ENDPOINT}`, opts) as UndocumentedSocket
     let socketHasOpened = false
     socket.onOpen(() => {
       socketHasOpened = true

@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "parcel watch src/index.ts src/browser.ts",
     "build": "npm test && parcel build --no-cache src/browser.ts",
-    "build-lib": "rm -rf lib && tsc --outDir lib --declaration",
+    "build-lib": "rm -rf lib && tsc --outDir lib --declaration && mv lib/src/* lib/ && rm -rf lib/src && rm lib/package.json",
     "prepublishOnly": "npm run build-lib",
     "test": "tsc --noEmit",
     "repo": "echo $npm_package_repository_url",
