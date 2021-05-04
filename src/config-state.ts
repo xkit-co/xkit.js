@@ -69,8 +69,7 @@ class StateManager {
   callWithConfig: configGetter = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
     const {
       token,
-      domain,
-      loginRedirect
+      domain
     } = this.getState()
 
     const fallback = async (e: Error): Promise<T> => {
