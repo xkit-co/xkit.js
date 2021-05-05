@@ -175,7 +175,7 @@ export async function prepareAuthWindow<T> (config: IKitConfig, callback: AuthWi
   }
 }
 
-export function prepareAuthWindowWithConfig<T>(callWithConfig: configGetter, callback: AuthWindowCallback<T>): Promise<T> {
+export function prepareAuthWindowWithConfig<T> (callWithConfig: configGetter, callback: AuthWindowCallback<T>): Promise<T> {
   return callWithConfig((config) => prepareAuthWindow(config, callback))
 }
 
@@ -214,7 +214,7 @@ async function loginToAuthWindow (callWithConfig: configGetter, authWindow: Auth
   })
 }
 
-export function authorize(callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
+export function authorize (callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
   return new Promise((resolve, reject) => {
     loginToAuthWindow(callWithConfig, authWindow, authorization)
       .then(() => callWithConfig(config => subscribeToStatus(config, authorization.id)))
