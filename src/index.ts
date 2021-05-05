@@ -58,12 +58,12 @@ export interface XkitJs {
   connect: (connector: Connector | string) => Promise<Connection>
   reconnect: (connection: Connection) => Promise<Connection>
   disconnect: (connector: Connector | string) => Promise<void>
-  addConnection: (connector: Connector | string, id?: string) => Promise<Connection>,
+  addConnection: (connector: Connector | string, id?: string) => Promise<Connection>
   removeConnection: (query: LegacyConnectionQuery) => Promise<void>
   /** @deprecated Use `setAuthorizationFields(...)` instead. */
-  setAuthorizationField: (slug: string, state: string, params: UnknownJSON) => Promise<Authorization>,
-  setAuthorizationFields: (slug: string, state: string, params: UnknownJSON) => Promise<Authorization>,
-  on: (type: XkitEvents, fn: (payload: unknown) => void) => void,
+  setAuthorizationField: (slug: string, state: string, params: UnknownJSON) => Promise<Authorization>
+  setAuthorizationFields: (slug: string, state: string, params: UnknownJSON) => Promise<Authorization>
+  on: (type: XkitEvents, fn: (payload: unknown) => void) => void
   off: (type: XkitEvents, fn: (payload: unknown) => void) => void
 }
 
