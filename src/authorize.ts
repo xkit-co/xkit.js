@@ -17,7 +17,6 @@ import {
 } from './util'
 import Emitter from './emitter'
 
-const CHECK_POPUP_DELAY_MS = 100
 // TODO: keep this in sync with loading.html
 const POPUP_READY_MESSAGE = 'authWindow:ready'
 
