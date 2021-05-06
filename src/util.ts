@@ -4,7 +4,7 @@ export function delay (ms: number): Promise<boolean> {
   })
 }
 
-function noop () {}
+function noop (): void {}
 
 export async function onWindowClose (window: Window, fn = noop, pollDelay = 200): Promise<void> {
   while (window != null && !window.closed) {

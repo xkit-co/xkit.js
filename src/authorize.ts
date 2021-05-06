@@ -73,7 +73,7 @@ const AUTH_POP_PARAMS: string = Object.entries({
   top: SCREEN ? SCREEN.height / 2 - AUTH_POP_HEIGHT_PX / 2 : 0
 }).reduce((paramStr: string, [key, val]: [string, string | number]) => `${paramStr},${key}=${val}`, '')
 
-function windowName () {
+function windowName (): string {
   return 'ikit:authorization'
 }
 
@@ -96,11 +96,11 @@ function loadingURL (config: IKitConfig, authorization?: Authorization, token?: 
 // Since Electron doesn't give us access to the child window, we
 // wait for confirmation that it has loaded before attempting to
 // send it a message.
-function monitorAuthWindowReady (config: IKitConfig) {
+function monitorAuthWindowReady (config: IKitConfig): () => Promise<void> {
   let authWindowReady = false
   const waiters: Function[] = []
 
-  const listener = (event: MessageEvent) => {
+  const listener = (event: MessageEvent): void => {
     if (event.origin === popupOrigin(config) && event.data === POPUP_READY_MESSAGE) {
       authWindowReady = true
       waiters.forEach(fn => fn())

@@ -37,7 +37,7 @@ class Emitter {
     return this.listeners.get(type)
   }
 
-  on (type: string, fn: EventCallback) {
+  on (type: string, fn: EventCallback): void {
     const listeners = this._getListeners(type)
     if (listeners.has(fn)) {
       throw new Error('Can not use the same function for the same type of event more than once.')
@@ -47,7 +47,7 @@ class Emitter {
       logger.warn(`The ${DISABLE_CONNECTION_EVENT} event is deprecated. Please migrate to the ${REMOVE_CONNECTION_EVENT}.`)
     }
 
-    const listener = (event: CustomEvent) => {
+    const listener = (event: CustomEvent): void => {
       if (event.type === type) {
         fn(event.detail)
       }
@@ -56,7 +56,7 @@ class Emitter {
     this.target.addEventListener(type, listener)
   }
 
-  off (type: string, fn: EventCallback) {
+  off (type: string, fn: EventCallback): void {
     const listeners = this._getListeners(type)
     if (!listeners.has(fn)) {
       throw new Error('The supplied function is not a listener on the given type.')
@@ -66,11 +66,11 @@ class Emitter {
     listeners.delete(fn)
   }
 
-  emit (type: string, payload?: unknown) {
+  emit (type: string, payload?: unknown): void {
     this.target.dispatchEvent(new CustomEvent(type, { detail: payload }))
   }
 
-  removeAllListeners () {
+  removeAllListeners (): void {
     this.listeners.forEach((listeners, type) => {
       listeners.forEach((_, userListener) => {
         this.off(type, userListener)
