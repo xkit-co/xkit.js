@@ -37,7 +37,7 @@ export function captureMessages<T> (origin: string, filter: filterMsg<T>): T[] {
 // thx: https://fettblog.eu/typescript-hasownproperty/
 export function hasOwnProperty<X extends {}, Y extends PropertyKey>
 (obj: X, prop: Y): obj is X & Record<Y, unknown> {
-  return obj.hasOwnProperty(prop)
+  return Object.prototype.hasOwnProperty.call(obj, prop)
 }
 
 export const logger = {
