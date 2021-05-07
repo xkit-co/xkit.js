@@ -203,11 +203,11 @@ class StateManager {
   private async setLoginRedirect (): Promise<void> {
     try {
       const { domain } = this.getState()
-      const { login_redirect_url } = await getPlatform({ domain })
-      if (!login_redirect_url) {
+      const { login_redirect_url: loginRedirectUrl } = await getPlatform({ domain })
+      if (!loginRedirectUrl) {
         logger.warn('Unable to retreive login redirect URL')
       } else {
-        this.setState({ loginRedirect: login_redirect_url })
+        this.setState({ loginRedirect: loginRedirectUrl })
       }
     } catch (e) {
       logger.warn(`Unable to retreive login redirect URL: ${e.message}`)

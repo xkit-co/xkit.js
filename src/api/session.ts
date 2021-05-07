@@ -21,17 +21,17 @@ export async function logout (config: IKitConfig): Promise<void> {
 
 export async function getAccessToken (config: IKitConfig): Promise<string> {
   const {
-    access_token
+    access_token: accessToken
   } = await request(config, {
     path: '/sessions/token',
     method: 'POST'
   })
 
-  if (!access_token) {
+  if (!accessToken) {
     throw new Error('No access token was returned')
   }
 
-  return access_token as string
+  return accessToken as string
 }
 
 export async function getOneTimeToken (config: AuthorizedConfig): Promise<string> {
