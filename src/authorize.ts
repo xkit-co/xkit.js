@@ -153,7 +153,7 @@ async function onAuthWindowClose (authWindow: AuthWindow): Promise<void> {
   }
 }
 
-export async function prepareAuthWindow<T> (config: IKitConfig, callback: AuthWindowCallback<T>): Promise<T> {
+export async function prepareAuthWindow<T> (config: IKitConfig, authWindowCallback: AuthWindowCallback<T>): Promise<T> {
   if (!config.token) {
     throw new AuthorizationError('Unauthorized.')
   }
@@ -166,7 +166,7 @@ export async function prepareAuthWindow<T> (config: IKitConfig, callback: AuthWi
   const ref = window.open(loadingURL(config), windowName(), AUTH_POP_PARAMS)
 
   try {
-    const ret = await callback({ ref, errors, ready })
+    const ret = await authWindowCallback({ ref, errors, ready })
     return ret
   } finally {
     if (ref && !ref.closed) {
