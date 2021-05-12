@@ -23,15 +23,6 @@ interface RequestOptions {
   body?: UnknownJSON
 }
 
-type XkitHeader = 'Accept' | 'Authorization' | 'Content-Type' | 'Xkit-Js-Version'
-
-interface FetchOptions {
-  headers: Partial<Record<XkitHeader, string>>
-  credentials?: 'include'
-  method?: RequestMethod
-  body?: string
-}
-
 export class IKitAPIError extends Error {
   name: string
   message: string
@@ -57,31 +48,31 @@ export class IKitAPIError extends Error {
   }
 }
 
-function getFetchOptions (config: IKitConfig, options: RequestOptions): FetchOptions {
-  const fetchOptions: FetchOptions = {
-    // So that cookies get sent and included, and returned cookies
-    // are not ignored
-    credentials: 'include',
-    headers: {
-      'Xkit-Js-Version': version,
-      Accept: 'application/json'
-    }
+function getFetchOptions (config: IKitConfig, options: RequestOptions): RequestInit {
+  const headers: Record<string, string> = {
+    'Xkit-Js-Version': version,
+    Accept: 'application/json'
   }
 
-  if (options.body) {
+  const fetchOptions: RequestInit = {
+    // So that cookies get sent and included, and returned cookies are not ignored.
+    credentials: 'include'
+  }
+
+  if (options.body != null) {
     fetchOptions.body = JSON.stringify(options.body)
-    fetchOptions.headers['Content-Type'] = 'application/json'
+    headers['Content-Type'] = 'application/json'
   }
 
-  if (options.method) {
+  if (options.method != null) {
     fetchOptions.method = options.method
   }
 
-  if (config.token) {
-    fetchOptions.headers.Authorization = `Bearer ${config.token}`
+  if (config.token != null) {
+    headers.Authorization = `Bearer ${config.token}`
   }
 
-  return fetchOptions
+  return { headers, ...fetchOptions }
 }
 
 async function parseData (res: Response): Promise<UnknownJSON> {
@@ -105,7 +96,7 @@ async function parseData (res: Response): Promise<UnknownJSON> {
   return data
 }
 
-async function friendlyFetch (url: string, options: FetchOptions): Promise<ReturnType<typeof fetch>> {
+async function friendlyFetch (url: string, options: RequestInit): Promise<ReturnType<typeof fetch>> {
   try {
     const res = await fetch(url, options)
     return res

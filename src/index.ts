@@ -71,12 +71,15 @@ function xkit (domain: string): XkitJs {
   const emitter = new Emitter()
   const configState = new StateManager({ domain }, emitter)
 
+  // Need explicit assignment because TypeScript can't handle it.
+  const onUpdate: (this: any, ...args: any[]) => Function = configState.onUpdate
+
   return {
     domain,
     url: `https://${domain}`,
     connectorUrl: (slug: string) => `https://${configState.getState().domain}${connectorPath(slug)}`,
     ready: (fn: Function): void => fn(),
-    onUpdate: deprecate(configState.onUpdate, 'xkit.onUpdate', 'xkit.on("config:update", ...)'),
+    onUpdate: deprecate(onUpdate, 'xkit.onUpdate', 'xkit.on("config:update", ...)'),
     logout: configState.logout,
     login: configState.login,
     getAccessToken: configState.retrieveToken,

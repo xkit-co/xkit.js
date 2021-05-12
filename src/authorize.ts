@@ -164,12 +164,15 @@ export async function prepareAuthWindow<T> (config: IKitConfig, authWindowCallba
   // don't open the window until our monitors above are set up,
   // otherwise we may not receive the messages we need
   const ref = window.open(loadingURL(config), windowName(), AUTH_POP_PARAMS)
+  if (ref == null) {
+    throw new AuthorizationError('Failed to open the authorization window.')
+  }
 
   try {
     const ret = await authWindowCallback({ ref, errors, ready })
     return ret
   } finally {
-    if (ref && !ref.closed) {
+    if (!ref.closed) {
       ref.close()
     }
   }
@@ -226,14 +229,14 @@ export function authorize (callWithConfig: configGetter, authWindow: AuthWindow,
 
         authorization.status = status
 
-        emitter.on('status_update', ({ status }) => {
+        emitter.on<{status: AuthorizationStatus}>('status_update', ({ status }) => {
           logger.debug('received status update', status)
           if (isComplete(status)) {
             callWithConfig(config => updateAuthorization(config, authorization)).then(resolve).catch(reject)
             emitter.removeAllListeners()
           }
         })
-        emitter.on('error', ({ error }) => {
+        emitter.on<{error: Error | string}>('error', ({ error }) => {
           logger.debug('Emitter received an error', error)
           reject(error instanceof Error ? error : new AuthorizationError(error))
           emitter.removeAllListeners()

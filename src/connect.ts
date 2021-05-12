@@ -24,6 +24,7 @@ async function updateConnection (config: AuthorizedConfig, connection: Connectio
 async function connectWithoutWindow (emitter: Emitter, callWithConfig: configGetter, authWindow: AuthWindow, connector: Connector | string, id?: string): Promise<Connection> {
   const slug = typeof connector === 'string' ? connector : connector.slug
   const connection = await callWithConfig(config => createConnection(config, slug, id))
+  if (connection.authorization == null) throw new Error('Authorization missing.')
   await authorize(callWithConfig, authWindow, connection.authorization)
   const newConnection = await callWithConfig(config => updateConnection(config, connection))
   emitter.emit(ENABLE_CONNECTION_EVENT, newConnection)

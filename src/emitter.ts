@@ -6,11 +6,11 @@ export const ENABLE_CONNECTION_EVENT = 'connection:enable'
 export const DISABLE_CONNECTION_EVENT = 'connection:disable'
 export const REMOVE_CONNECTION_EVENT = 'connection:remove'
 
-type EventCallback = (payload: unknown) => void
+type EventCallback<T> = (payload: T) => void
 // Namespace listeners by event type
 type ListenerTypes = Map<string, Listeners>
 // Maps user-supplied listeners with listeners supplied to EventTarget
-type Listeners = Map<EventCallback, EventCallback>
+type Listeners = Map<EventCallback<any>, EventListener>
 
 /**
  * Thin wrapper around EventTarget to make it
@@ -31,13 +31,17 @@ class Emitter {
   }
 
   _getListeners (type: string): Listeners {
-    if (!this.listeners.has(type)) {
-      this.listeners.set(type, new Map())
+    let listeners = this.listeners.get(type)
+
+    if (listeners == null) {
+      listeners = new Map()
+      this.listeners.set(type, listeners)
     }
-    return this.listeners.get(type)
+
+    return listeners
   }
 
-  on (type: string, fn: EventCallback): void {
+  on<T> (type: string, fn: EventCallback<T>): void {
     const listeners = this._getListeners(type)
     if (listeners.has(fn)) {
       throw new Error('Can not use the same function for the same type of event more than once.')
@@ -47,23 +51,26 @@ class Emitter {
       logger.warn(`The ${DISABLE_CONNECTION_EVENT} event is deprecated. Please migrate to the ${REMOVE_CONNECTION_EVENT}.`)
     }
 
-    const listener = (event: CustomEvent): void => {
+    const listener = ((event: CustomEvent<T>): void => {
       if (event.type === type) {
         fn(event.detail)
       }
-    }
+    // https://github.com/Microsoft/TypeScript/issues/28357
+    }) as EventListener
     listeners.set(fn, listener)
     this.target.addEventListener(type, listener)
   }
 
-  off (type: string, fn: EventCallback): void {
+  off<T> (type: string, fn: EventCallback<T>): void {
     const listeners = this._getListeners(type)
     if (!listeners.has(fn)) {
       throw new Error('The supplied function is not a listener on the given type.')
     }
     const listener = listeners.get(fn)
-    this.target.removeEventListener(type, listener)
-    listeners.delete(fn)
+    if (listener != null) {
+      this.target.removeEventListener(type, listener)
+      listeners.delete(fn)
+    }
   }
 
   emit (type: string, payload?: unknown): void {

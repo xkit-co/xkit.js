@@ -18,7 +18,7 @@ interface UndocumentedSocket extends Socket {
   }
 }
 
-let socket: UndocumentedSocket | null
+let appSocket: UndocumentedSocket | null
 
 function resetSocket (socket: UndocumentedSocket): UndocumentedSocket {
   socket.reconnectTimer.reset()
@@ -27,12 +27,12 @@ function resetSocket (socket: UndocumentedSocket): UndocumentedSocket {
 }
 
 async function initializeSocket (config: AuthorizedConfig): Promise<UndocumentedSocket> {
-  if (socket) {
-    if (socket.isConnected) {
-      return socket
+  if (appSocket != null) {
+    if (appSocket.isConnected()) {
+      return appSocket
     } else {
-      resetSocket(socket)
-      socket = null
+      resetSocket(appSocket)
+      appSocket = null
     }
   }
 
@@ -47,7 +47,7 @@ async function initializeSocket (config: AuthorizedConfig): Promise<Undocumented
       // the proxy that handles custom domains terminates the connection after 30 seconds.
       heartbeatIntervalMs: 15000
     }
-    socket = new Socket(`${SCHEME}//${config.domain}${SOCKET_ENDPOINT}`, opts) as UndocumentedSocket
+    const socket = appSocket = new Socket(`${SCHEME}//${config.domain}${SOCKET_ENDPOINT}`, opts) as UndocumentedSocket
     let socketHasOpened = false
     socket.onOpen(() => {
       socketHasOpened = true
@@ -56,7 +56,7 @@ async function initializeSocket (config: AuthorizedConfig): Promise<Undocumented
     socket.onClose((evt) => {
       if (!socketHasOpened) {
         resetSocket(socket)
-        socket = null
+        appSocket = null
         logger.debug('Socket initialization failed', evt)
 
         // check to see if it's an auth error or not

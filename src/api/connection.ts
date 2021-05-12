@@ -54,7 +54,7 @@ function convertLegacyQuery (query: LegacyConnectionQuery): ConnectionQuery {
 }
 
 export function isConnection (conn: ConnectionOnly | ConnectionShell | undefined): conn is Connection {
-  return conn && hasOwnProperty(conn, 'enabled') && conn.enabled != null
+  return conn != null && hasOwnProperty(conn, 'enabled') && conn.enabled != null
 }
 
 function connectionPath (legacyQuery: LegacyConnectionQuery): string {
