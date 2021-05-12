@@ -91,7 +91,7 @@ class StateManager {
         try {
           await this.retrieveToken()
         } catch (e) {
-          return fallback(e)
+          return await fallback(e)
         }
 
         const newState = this.getState()
@@ -99,7 +99,7 @@ class StateManager {
           const res = await fn({ domain: newState.domain, token: newState.token })
           return res
         } catch (e) {
-          return fallback(e)
+          return await fallback(e)
         }
       }
       throw e
