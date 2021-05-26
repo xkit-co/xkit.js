@@ -66,7 +66,7 @@ class StateManager {
     return Object.assign({}, this.state)
   }
 
-  callWithConfig: configGetter = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
+  callWithConfig = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
     const { token, domain } = this.getState()
 
     try {
@@ -98,11 +98,11 @@ class StateManager {
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
     return (...args: unknown[]): Promise<T> => {
-      const fns = [(config: AuthorizedConfig) => fn(config, ...args)]
-      if (fallbackFn) {
-        fns.push((config: IKitConfig) => fallbackFn(config, ...args))
-      }
-      return this.callWithConfig.apply(this, fns)
+      const curriedFn = (config: AuthorizedConfig): Promise<T> => fn(config, ...args)
+      const curriedFallbackFn = fallbackFn == null
+        ? undefined
+        : (config: IKitConfig): Promise<T> => fallbackFn(config, ...args)
+      return this.callWithConfig(curriedFn, curriedFallbackFn)
     }
   }
 
