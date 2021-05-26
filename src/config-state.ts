@@ -67,43 +67,33 @@ class StateManager {
   }
 
   callWithConfig: configGetter = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
-    const {
-      token,
-      domain
-    } = this.getState()
-
-    const fallback = async (e: Error): Promise<T> => {
-      if (isUnauthorized(e)) {
-        if (fallbackFn) {
-          const res = await fallbackFn({ domain: this.getState().domain })
-          return res
-        }
-        await this.redirect(e)
-      }
-      throw e
-    }
+    const { token, domain } = this.getState()
 
     try {
-      const res = await fn({ domain, token })
-      return res
-    } catch (e) {
-      if (isUnauthorized(e)) {
-        try {
-          await this.retrieveToken()
-        } catch (e) {
-          return await fallback(e)
-        }
-
-        const newState = this.getState()
-        try {
-          const res = await fn({ domain: newState.domain, token: newState.token })
-          return res
-        } catch (e) {
-          return await fallback(e)
-        }
+      if (token != null) {
+        return await fn({ domain, token })
       }
-      throw e
+    } catch (e) {
+      if (!isUnauthorized(e)) { throw e }
     }
+
+    // We didn't have a token or the has expired.
+
+    try {
+      const newToken = await this.retrieveToken()
+      return await fn({ domain, token: newToken })
+    } catch (e) {
+      if (!isUnauthorized(e)) { throw e }
+      logger.error(`Encountered error while refreshing access: ${e != null ? String(e.message) : 'undefined'}`)
+    }
+
+    // Attempting to refresh the credentials didn't help.
+
+    if (fallbackFn != null) {
+      return await fallbackFn({ domain: this.getState().domain })
+    }
+
+    return await this.redirect()
   }
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
@@ -116,9 +106,7 @@ class StateManager {
     }
   }
 
-  redirect = async (e: Error | undefined): Promise<void> => {
-    logger.error(`Encoutered error while refreshing access: ${e ? e.message : 'undefined'}`)
-
+  redirect = async (): Promise<never> => {
     const { loginRedirect } = this.getState()
     if (!loginRedirect) {
       logger.error('Misconfigured site: unable to retrieve login redirect location')
@@ -128,6 +116,7 @@ class StateManager {
     // never release from this function so that the page redirects
     // without doing anything else
     await new Promise(() => {})
+    throw new Error('unreachable code')
   }
 
   login = async (token: string): Promise<void> => {
