@@ -96,8 +96,8 @@ class StateManager {
     return await this.redirect()
   }
 
-  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
-    return (...args: unknown[]): Promise<T> => {
+  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>): ((...args: any[]) => Promise<T>) => {
+    return (...args: any[]): Promise<T> => {
       const curriedFn = (config: AuthorizedConfig): Promise<T> => fn(config, ...args)
       const curriedFallbackFn = fallbackFn == null
         ? undefined
