@@ -91,7 +91,7 @@ class StateManager {
         try {
           await this.retrieveToken()
         } catch (e) {
-          return fallback(e)
+          return await fallback(e)
         }
 
         const newState = this.getState()
@@ -99,7 +99,7 @@ class StateManager {
           const res = await fn({ domain: newState.domain, token: newState.token })
           return res
         } catch (e) {
-          return fallback(e)
+          return await fallback(e)
         }
       }
       throw e
@@ -107,13 +107,12 @@ class StateManager {
   }
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
-    const stateManager = this
-    return function (...args: unknown[]): Promise<T> {
+    return (...args: unknown[]): Promise<T> => {
       const fns = [(config: AuthorizedConfig) => fn(config, ...args)]
       if (fallbackFn) {
         fns.push((config: IKitConfig) => fallbackFn(config, ...args))
       }
-      return stateManager.callWithConfig.apply(stateManager, fns)
+      return this.callWithConfig.apply(this, fns)
     }
   }
 

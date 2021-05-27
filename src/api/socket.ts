@@ -40,7 +40,7 @@ async function initializeSocket (config: AuthorizedConfig): Promise<Undocumented
     token: config.token
   }
 
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     const opts = {
       params,
       // The default value of 30 seconds is not enough to keep the connection alive -

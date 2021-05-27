@@ -208,7 +208,7 @@ async function updateAuthorization (config: AuthorizedConfig, authorization: Aut
 // TODO: make this concurrent with loading the connection?
 async function loginToAuthWindow (callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
   const oneTimeToken = await callWithConfig(getOneTimeToken)
-  return callWithConfig(config => {
+  return await callWithConfig(config => {
     const url = loadingURL(config, authorization, oneTimeToken)
     return replaceAuthWindowURL(config, authWindow, url)
   })
