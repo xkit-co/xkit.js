@@ -66,59 +66,47 @@ class StateManager {
     return Object.assign({}, this.state)
   }
 
-  callWithConfig: configGetter = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
-    const {
-      token,
-      domain
-    } = this.getState()
-
-    const fallback = async (e: Error): Promise<T> => {
-      if (isUnauthorized(e)) {
-        if (fallbackFn) {
-          const res = await fallbackFn({ domain: this.getState().domain })
-          return res
-        }
-        await this.redirect(e)
-      }
-      throw e
-    }
+  callWithConfig = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
+    const { token, domain } = this.getState()
 
     try {
-      const res = await fn({ domain, token })
-      return res
+      if (token != null) {
+        return await fn({ domain, token })
+      }
     } catch (e) {
-      if (isUnauthorized(e)) {
-        try {
-          await this.retrieveToken()
-        } catch (e) {
-          return await fallback(e)
-        }
+      if (!isUnauthorized(e)) { throw e }
+    }
 
-        const newState = this.getState()
-        try {
-          const res = await fn({ domain: newState.domain, token: newState.token })
-          return res
-        } catch (e) {
-          return await fallback(e)
-        }
-      }
-      throw e
+    // We didn't have a token or the has expired.
+
+    try {
+      const newToken = await this.retrieveToken()
+      return await fn({ domain, token: newToken })
+    } catch (e) {
+      if (!isUnauthorized(e)) { throw e }
+      logger.error(`Encountered error while refreshing access: ${e != null ? String(e.message) : 'undefined'}`)
+    }
+
+    // Attempting to refresh the credentials didn't help.
+
+    if (fallbackFn != null) {
+      return await fallbackFn({ domain: this.getState().domain })
+    }
+
+    return await this.redirect()
+  }
+
+  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>): ((...args: any[]) => Promise<T>) => {
+    return (...args: any[]): Promise<T> => {
+      const curriedFn = (config: AuthorizedConfig): Promise<T> => fn(config, ...args)
+      const curriedFallbackFn = fallbackFn == null
+        ? undefined
+        : (config: IKitConfig): Promise<T> => fallbackFn(config, ...args)
+      return this.callWithConfig(curriedFn, curriedFallbackFn)
     }
   }
 
-  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: unknown[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: unknown[]) => Promise<T>): ((...args: unknown[]) => Promise<T>) => {
-    return (...args: unknown[]): Promise<T> => {
-      const fns = [(config: AuthorizedConfig) => fn(config, ...args)]
-      if (fallbackFn) {
-        fns.push((config: IKitConfig) => fallbackFn(config, ...args))
-      }
-      return this.callWithConfig.apply(this, fns)
-    }
-  }
-
-  redirect = async (e: Error | undefined): Promise<void> => {
-    logger.error(`Encoutered error while refreshing access: ${e ? e.message : 'undefined'}`)
-
+  redirect = async (): Promise<never> => {
     const { loginRedirect } = this.getState()
     if (!loginRedirect) {
       logger.error('Misconfigured site: unable to retrieve login redirect location')
@@ -128,6 +116,7 @@ class StateManager {
     // never release from this function so that the page redirects
     // without doing anything else
     await new Promise(() => {})
+    throw new Error('unreachable code')
   }
 
   login = async (token: string): Promise<void> => {

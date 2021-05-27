@@ -4,7 +4,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "jsx": "react",
-    "noImplicitAny": true,
+    "strict": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext", "ScriptHost"],
     "target": "es5",
     "allowJs": false,

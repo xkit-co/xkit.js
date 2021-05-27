@@ -111,7 +111,7 @@ export async function subscribeToStatus (config: AuthorizedConfig, authorization
   if (isComplete(status)) {
     logger.debug(`Removing subscription to authorization status, already in a terminal state: ${status}.`)
     await leave(channel)
-    return [null, status]
+    return [emitter, status]
   }
 
   channel.onError((err: Error | string) => {
