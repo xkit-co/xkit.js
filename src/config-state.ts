@@ -77,7 +77,7 @@ class StateManager {
       if (!isUnauthorized(e)) { throw e }
     }
 
-    // We didn't have a token or the has expired.
+    // We didn't have a token or the token has expired.
 
     try {
       const newToken = await this.retrieveToken()
@@ -87,7 +87,7 @@ class StateManager {
       logger.error(`Encountered error while refreshing access: ${e != null ? String(e.message) : 'undefined'}`)
     }
 
-    // Attempting to refresh the credentials didn't help.
+    // Attempting to refresh the token didn't help.
 
     if (fallbackFn != null) {
       return await fallbackFn({ domain: this.getState().domain })
@@ -108,7 +108,7 @@ class StateManager {
 
   redirect = async (): Promise<never> => {
     const { loginRedirect } = this.getState()
-    if (!loginRedirect) {
+    if (loginRedirect == null) {
       logger.error('Misconfigured site: unable to retrieve login redirect location')
       throw new Error('We encountered an unexpected error. Please report this issue.')
     }
@@ -193,12 +193,12 @@ class StateManager {
       const { domain } = this.getState()
       const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain })
       if (!loginRedirectUrl) {
-        logger.warn('Unable to retreive login redirect URL')
+        logger.warn('Unable to retrieve login redirect URL')
       } else {
         this.setState({ loginRedirect: loginRedirectUrl })
       }
     } catch (e) {
-      logger.warn(`Unable to retreive login redirect URL: ${e.message}`)
+      logger.warn(`Unable to retrieve login redirect URL: ${e.message}`)
     }
   }
 }
