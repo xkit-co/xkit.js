@@ -1,5 +1,5 @@
 import { IKitConfig, AuthorizedConfig } from './config'
-import { configGetter } from './config-state'
+import { CallWithConfig } from './config-state'
 import {
   getAuthorization,
   Authorization,
@@ -178,11 +178,11 @@ export async function prepareAuthWindow<T> (config: IKitConfig, authWindowCallba
   }
 }
 
-export function prepareAuthWindowWithConfig<T> (callWithConfig: configGetter, callback: AuthWindowCallback<T>): Promise<T> {
+export function prepareAuthWindowWithConfig<T> (callWithConfig: CallWithConfig, callback: AuthWindowCallback<T>): Promise<T> {
   return callWithConfig((config) => prepareAuthWindow(config, callback))
 }
 
-async function loadAuthWindow (callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
+async function loadAuthWindow (callWithConfig: CallWithConfig, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
   if (!isAuthorizationReadyForSetup(authorization)) {
     throw new AuthorizationError('Authorization is not in a state to be setup.')
   }
@@ -209,7 +209,7 @@ async function updateAuthorization (config: AuthorizedConfig, authorization: Aut
 }
 
 // TODO: make this concurrent with loading the connection?
-async function loginToAuthWindow (callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
+async function loginToAuthWindow (callWithConfig: CallWithConfig, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
   const oneTimeToken = await callWithConfig(getOneTimeToken)
   return await callWithConfig(config => {
     const url = loadingURL(config, authorization, oneTimeToken)
@@ -217,7 +217,7 @@ async function loginToAuthWindow (callWithConfig: configGetter, authWindow: Auth
   })
 }
 
-export function authorize (callWithConfig: configGetter, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
+export function authorize (callWithConfig: CallWithConfig, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
   return new Promise((resolve, reject) => {
     loginToAuthWindow(callWithConfig, authWindow, authorization)
       .then(() => callWithConfig(config => subscribeToStatus(config, authorization.id)))

@@ -20,7 +20,7 @@ export interface ConfigState extends InitialConfigState {
   loading: boolean
 }
 
-export type configGetter = <T>(fn: (config: AuthorizedConfig) => Promise<T>) => Promise<T>
+export type CallWithConfig = <T>(fn: (config: AuthorizedConfig) => Promise<T>) => Promise<T>
 
 function isUnauthorized (e: Error): boolean {
   return (e instanceof IKitAPIError && e.statusCode === 401) ||
