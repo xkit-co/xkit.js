@@ -1,6 +1,6 @@
 import { IKitConfig, AuthorizedConfig } from './config'
 import { IKitAPIError } from './api/request'
-import { getPlatform } from './api/platform'
+import { getPlatformPublic } from './api/platform'
 import {
   login,
   logout,
@@ -191,7 +191,7 @@ class StateManager {
   private async setLoginRedirect (): Promise<void> {
     try {
       const { domain } = this.getState()
-      const { login_redirect_url: loginRedirectUrl } = await getPlatform({ domain })
+      const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain })
       if (!loginRedirectUrl) {
         logger.warn('Unable to retreive login redirect URL')
       } else {
