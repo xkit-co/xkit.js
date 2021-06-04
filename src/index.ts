@@ -31,7 +31,7 @@ import {
 } from './connect'
 import {
   Platform,
-  getPlatform
+  getPlatformPublic
 } from './api/platform'
 import Emitter from './emitter'
 import { deprecate } from './util'
@@ -83,7 +83,7 @@ function xkit (domain: string): XkitJs {
     logout: configState.logout,
     login: configState.login,
     getAccessToken: configState.retrieveToken,
-    getPlatform: configState.curryWithConfig(getPlatform),
+    getPlatform: configState.curryWithConfig(getPlatformPublic, getPlatformPublic),
     listConnectors: configState.curryWithConfig(listConnectors, listConnectorsPublic),
     getConnector: configState.curryWithConfig(getConnector, getConnectorPublic),
     listConnections: configState.curryWithConfig(listConnections),
