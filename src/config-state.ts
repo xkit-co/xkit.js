@@ -2,8 +2,8 @@ import { IKitConfig, AuthorizedConfig } from './config'
 import { IKitAPIError } from './api/request'
 import { getPlatformPublic } from './api/platform'
 import {
-  login,
-  logout,
+  createSession,
+  deleteSession,
   getAccessToken
 } from './api/session'
 import Emitter from './emitter'
@@ -138,7 +138,7 @@ class StateManager {
       loading: true
     })
     try {
-      await login({ domain }, token)
+      await createSession({ domain }, token)
       this.setState({ token })
     } catch (e) {
       if (isUnauthorized(e)) {
@@ -155,7 +155,7 @@ class StateManager {
 
   logout = async (): Promise<void> => {
     const { domain } = this.getState()
-    await logout({ domain })
+    await deleteSession({ domain })
     this.setState({ token: undefined })
   }
 
