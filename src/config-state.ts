@@ -27,6 +27,18 @@ function isUnauthorized (e: Error): boolean {
          e.message.toLowerCase() === 'unauthorized'
 }
 
+// User session management.
+//
+// The class encapsulates the logic of managing the user session. xkit.js contains publicly
+// available APIs which can be used to showcase the platform's available connectors so it has
+// to be able to work without the user session.
+//
+// The user session is established by calling login() and passing a JWT obtained by provisioning
+// the user via the Platform API or by passing a 3rd-party JWT. Calling login() calls the Xkit
+// backend that creates a cookie-based user session and returns a token that is then used
+// to make API calls. If the token expires, a new token is retrieved using the cookie-based
+// session. If the session expires, the developer-provided callback is invoked. If no callback was
+// provided, the user is redirected to the URL configured in the dev portal.
 class StateManager {
   private readonly state: ConfigState
   emitter: Emitter
@@ -78,6 +90,7 @@ class StateManager {
     }
 
     // We didn't have a token or the token has expired.
+    // Attempt to fetch a fresh token hoping that the session is still valid.
 
     try {
       const newToken = await this.retrieveToken()
