@@ -18,9 +18,11 @@ interface InitialConfigState extends IKitConfig {
 export interface ConfigState extends InitialConfigState {
   retrievingToken?: Promise<string>
   loading: boolean
+  tokenCallback: TokenCallback
 }
 
 export type CallWithConfig = <T>(fn: (config: AuthorizedConfig) => Promise<T>) => Promise<T>
+export type TokenCallback = () => Promise<string>
 
 function isUnauthorized (e: Error): boolean {
   return (e instanceof IKitAPIError && e.statusCode === 401) ||
@@ -46,7 +48,8 @@ class StateManager {
   constructor (initialState: InitialConfigState, emitter: Emitter) {
     this.state = {
       ...initialState,
-      loading: true
+      loading: true,
+      tokenCallback: this.redirect
     }
 
     this.emitter = emitter
@@ -79,7 +82,7 @@ class StateManager {
   }
 
   callWithConfig = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
-    const { token, domain } = this.getState()
+    const { token, domain, tokenCallback } = this.getState()
 
     try {
       if (token != null) {
@@ -106,7 +109,9 @@ class StateManager {
       return await fallbackFn({ domain: this.getState().domain })
     }
 
-    return await this.redirect()
+    const newToken = await tokenCallback()
+    this.setState({ token: newToken })
+    return this.callWithConfig(fn, fallbackFn)
   }
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>): ((...args: any[]) => Promise<T>) => {
@@ -132,22 +137,23 @@ class StateManager {
     throw new Error('unreachable code')
   }
 
-  login = async (token: string): Promise<void> => {
+  login = async (tokenOrFunc: string | TokenCallback, tokenCallback?: TokenCallback): Promise<void> => {
     const { domain } = this.getState()
-    this.setState({
-      loading: true
-    })
+    this.setState({ loading: true })
+
     try {
-      await createSession({ domain }, token)
-      this.setState({ token })
-    } catch (e) {
-      if (isUnauthorized(e)) {
-        // token is expired, throw it away and
-        // try to refresh
-        await this.retrieveToken()
+      let token
+      if (typeof tokenOrFunc === 'string') {
+        token = tokenOrFunc
       } else {
-        logger.warn(e)
+        tokenCallback = tokenOrFunc
+        token = await tokenOrFunc()
       }
+
+      await createSession({ domain }, token)
+      this.setState({ token, tokenCallback: tokenCallback ?? this.redirect })
+    } catch (e) {
+      logger.warn(e)
     } finally {
       this.setState({ loading: false })
     }

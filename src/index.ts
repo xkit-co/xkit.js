@@ -1,4 +1,4 @@
-import StateManager from './config-state'
+import StateManager, { TokenCallback } from './config-state'
 import { UnknownJSON } from './api/request'
 import {
   Connection,
@@ -46,7 +46,7 @@ export interface XkitJs {
   /** @deprecated Use `on("config:update", ...)` instead. */
   onUpdate: (fn: Function) => Function
   logout: () => Promise<void>
-  login: (token: string) => Promise<void>
+  login: (tokenOrFunc: string | TokenCallback, tokenCallback?: TokenCallback) => Promise<void>
   getAccessToken: () => Promise<string>
   getPlatform: () => Promise<Platform>
   listConnectors: () => Promise<Connector[]>
