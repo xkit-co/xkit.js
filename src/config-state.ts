@@ -2,8 +2,8 @@ import { IKitConfig, AuthorizedConfig } from './config'
 import { IKitAPIError } from './api/request'
 import { getPlatformPublic } from './api/platform'
 import {
-  login,
-  logout,
+  createSession,
+  deleteSession,
   getAccessToken
 } from './api/session'
 import Emitter from './emitter'
@@ -18,15 +18,29 @@ interface InitialConfigState extends IKitConfig {
 export interface ConfigState extends InitialConfigState {
   retrievingToken?: Promise<string>
   loading: boolean
+  tokenCallback: TokenCallback
 }
 
-export type configGetter = <T>(fn: (config: AuthorizedConfig) => Promise<T>) => Promise<T>
+export type CallWithConfig = <T>(fn: (config: AuthorizedConfig) => Promise<T>) => Promise<T>
+export type TokenCallback = () => Promise<string>
 
 function isUnauthorized (e: Error): boolean {
   return (e instanceof IKitAPIError && e.statusCode === 401) ||
          e.message.toLowerCase() === 'unauthorized'
 }
 
+// User session management.
+//
+// The class encapsulates the logic of managing the user session. xkit.js contains publicly
+// available APIs which can be used to showcase the platform's available connectors so it has
+// to be able to work without the user session.
+//
+// The user session is established by calling login() and passing a JWT obtained by provisioning
+// the user via the Platform API or by passing a 3rd-party JWT. Calling login() calls the Xkit
+// backend that creates a cookie-based user session and returns a token that is then used
+// to make API calls. If the token expires, a new token is retrieved using the cookie-based
+// session. If the session expires, the developer-provided callback is invoked. If no callback was
+// provided, the user is redirected to the URL configured in the dev portal.
 class StateManager {
   private readonly state: ConfigState
   emitter: Emitter
@@ -34,7 +48,8 @@ class StateManager {
   constructor (initialState: InitialConfigState, emitter: Emitter) {
     this.state = {
       ...initialState,
-      loading: true
+      loading: true,
+      tokenCallback: this.redirect
     }
 
     this.emitter = emitter
@@ -67,7 +82,7 @@ class StateManager {
   }
 
   callWithConfig = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
-    const { token, domain } = this.getState()
+    const { token, domain, tokenCallback } = this.getState()
 
     try {
       if (token != null) {
@@ -77,7 +92,8 @@ class StateManager {
       if (!isUnauthorized(e)) { throw e }
     }
 
-    // We didn't have a token or the has expired.
+    // We didn't have a token or the token has expired.
+    // Attempt to fetch a fresh token hoping that the session is still valid.
 
     try {
       const newToken = await this.retrieveToken()
@@ -87,13 +103,15 @@ class StateManager {
       logger.error(`Encountered error while refreshing access: ${e != null ? String(e.message) : 'undefined'}`)
     }
 
-    // Attempting to refresh the credentials didn't help.
+    // Attempting to refresh the token didn't help.
 
     if (fallbackFn != null) {
       return await fallbackFn({ domain: this.getState().domain })
     }
 
-    return await this.redirect()
+    const newToken = await tokenCallback()
+    this.setState({ token: newToken })
+    return this.callWithConfig(fn, fallbackFn)
   }
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>): ((...args: any[]) => Promise<T>) => {
@@ -108,7 +126,7 @@ class StateManager {
 
   redirect = async (): Promise<never> => {
     const { loginRedirect } = this.getState()
-    if (!loginRedirect) {
+    if (loginRedirect == null) {
       logger.error('Misconfigured site: unable to retrieve login redirect location')
       throw new Error('We encountered an unexpected error. Please report this issue.')
     }
@@ -119,22 +137,23 @@ class StateManager {
     throw new Error('unreachable code')
   }
 
-  login = async (token: string): Promise<void> => {
+  login = async (tokenOrFunc: string | TokenCallback, tokenCallback?: TokenCallback): Promise<void> => {
     const { domain } = this.getState()
-    this.setState({
-      loading: true
-    })
+    this.setState({ loading: true })
+
     try {
-      await login({ domain }, token)
-      this.setState({ token })
-    } catch (e) {
-      if (isUnauthorized(e)) {
-        // token is expired, throw it away and
-        // try to refresh
-        await this.retrieveToken()
+      let token
+      if (typeof tokenOrFunc === 'string') {
+        token = tokenOrFunc
       } else {
-        logger.warn(e)
+        tokenCallback = tokenOrFunc
+        token = await tokenOrFunc()
       }
+
+      await createSession({ domain }, token)
+      this.setState({ token, tokenCallback: tokenCallback ?? this.redirect })
+    } catch (e) {
+      logger.warn(e)
     } finally {
       this.setState({ loading: false })
     }
@@ -142,7 +161,7 @@ class StateManager {
 
   logout = async (): Promise<void> => {
     const { domain } = this.getState()
-    await logout({ domain })
+    await deleteSession({ domain })
     this.setState({ token: undefined })
   }
 
@@ -193,12 +212,12 @@ class StateManager {
       const { domain } = this.getState()
       const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain })
       if (!loginRedirectUrl) {
-        logger.warn('Unable to retreive login redirect URL')
+        logger.warn('Unable to retrieve login redirect URL')
       } else {
         this.setState({ loginRedirect: loginRedirectUrl })
       }
     } catch (e) {
-      logger.warn(`Unable to retreive login redirect URL: ${e.message}`)
+      logger.warn(`Unable to retrieve login redirect URL: ${e.message}`)
     }
   }
 }

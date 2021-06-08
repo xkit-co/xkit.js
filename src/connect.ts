@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { AuthorizedConfig } from './config'
-import { configGetter } from './config-state'
+import { CallWithConfig } from './config-state'
 import { Connector } from './api/connector'
 import {
   createConnection,
@@ -21,7 +21,7 @@ async function updateConnection (config: AuthorizedConfig, connection: Connectio
   return newConnection
 }
 
-async function connectWithoutWindow (emitter: Emitter, callWithConfig: configGetter, authWindow: AuthWindow, connector: Connector | string, id?: string): Promise<Connection> {
+async function connectWithoutWindow (emitter: Emitter, callWithConfig: CallWithConfig, authWindow: AuthWindow, connector: Connector | string, id?: string): Promise<Connection> {
   const slug = typeof connector === 'string' ? connector : connector.slug
   const connection = await callWithConfig(config => createConnection(config, slug, id))
   if (connection.authorization == null) throw new Error('Authorization missing.')
@@ -31,7 +31,7 @@ async function connectWithoutWindow (emitter: Emitter, callWithConfig: configGet
   return newConnection
 }
 
-export async function connect (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string): Promise<Connection> {
+export async function connect (emitter: Emitter, callWithConfig: CallWithConfig, connector: Connector | string): Promise<Connection> {
   const connection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
     return connectWithoutWindow(emitter, callWithConfig, authWindow, connector)
   })
@@ -46,7 +46,7 @@ export async function disconnect (emitter: Emitter, config: AuthorizedConfig, co
   emitter.emit(REMOVE_CONNECTION_EVENT, connection)
 }
 
-export async function reconnect (emitter: Emitter, callWithConfig: configGetter, connection: Connection): Promise<Connection> {
+export async function reconnect (emitter: Emitter, callWithConfig: CallWithConfig, connection: Connection): Promise<Connection> {
   const newConnection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
     return connectWithoutWindow(emitter, callWithConfig, authWindow, connection.connector, connection.id)
   })
@@ -54,7 +54,7 @@ export async function reconnect (emitter: Emitter, callWithConfig: configGetter,
   return newConnection
 }
 
-export async function addConnection (emitter: Emitter, callWithConfig: configGetter, connector: Connector | string, id?: string): Promise<Connection> {
+export async function addConnection (emitter: Emitter, callWithConfig: CallWithConfig, connector: Connector | string, id?: string): Promise<Connection> {
   const connectionId = typeof id === 'string' ? id : uuidv4()
   const connection = await prepareAuthWindowWithConfig(callWithConfig, authWindow => {
     return connectWithoutWindow(emitter, callWithConfig, authWindow, connector, connectionId)
