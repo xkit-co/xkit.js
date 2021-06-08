@@ -56,6 +56,8 @@ export interface Authorization {
   state?: string
 }
 
+function noop (): void {};
+
 function isStatus (status: string): status is AuthorizationStatus {
   const statuses: string[] = Object.values(AuthorizationStatus)
   return statuses.includes(status)
@@ -122,12 +124,12 @@ export async function subscribeToStatus (config: AuthorizedConfig, authorization
     emitter.emit('close')
   })
 
-  channel.on('status_update', async ({ status: statusUpdate }) => {
+  channel.on('status_update', ({ status: statusUpdate }) => {
     emitter.emit('status_update', { status: statusUpdate })
 
     if (isComplete(statusUpdate)) {
       logger.debug(`Removing subscription to authorization status, now in a terminal state: ${status}.`)
-      await leave(channel)
+      leave(channel).then(noop, noop)
     }
   })
 
