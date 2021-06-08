@@ -27,7 +27,7 @@ export async function getAccessToken (config: IKitConfig): Promise<string> {
     method: 'POST'
   })
 
-  if (!accessToken) {
+  if ((accessToken ?? '') === '') {
     throw new Error('No access token was returned')
   }
 
@@ -40,7 +40,7 @@ export async function getOneTimeToken (config: AuthorizedConfig): Promise<string
     method: 'POST'
   })
 
-  if (!ott) {
+  if ((ott ?? '') === '') {
     throw new Error('No one-time token was returned')
   }
 

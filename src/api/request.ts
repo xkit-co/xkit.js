@@ -39,9 +39,8 @@ export class IKitAPIError extends Error {
     this.statusCode = res.status
     this.statusText = res.statusText
     this.debugMessage = debugMessage
-    // @ts-ignore
     if (process.env.NODE_ENV === 'development') {
-      if (this.debugMessage) {
+      if (this.debugMessage != null) {
         this.message = `${this.message} (debug: ${this.debugMessage})`
       }
     }
@@ -80,7 +79,7 @@ async function parseData (res: Response): Promise<UnknownJSON> {
 
   try {
     data = await res.json()
-    if (!data) {
+    if (data == null) {
       throw new Error('No data in response')
     }
   } catch (e) {
@@ -89,7 +88,7 @@ async function parseData (res: Response): Promise<UnknownJSON> {
     }
     throw new IKitAPIError(e.message, res)
   }
-  if (data.error) {
+  if (data.error != null) {
     throw new IKitAPIError(data.error, res)
   }
 
@@ -118,18 +117,14 @@ export async function request (config: IKitConfig, options: RequestOptions): Pro
     getFetchOptions(config, options)
   )
 
-  let data
-
-  // No Content response header
-  if (res.status !== 204) {
-    data = await parseData(res)
-  } else {
-    data = {}
-  }
-
   if (!res.ok) {
     throw new IKitAPIError(res.statusText, res)
   }
 
-  return data
+  // No Content response header
+  if (res.status !== 204) {
+    return await parseData(res)
+  }
+
+  return {}
 }

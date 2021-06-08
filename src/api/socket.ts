@@ -77,13 +77,14 @@ async function initializeSocket (config: AuthorizedConfig): Promise<Undocumented
   })
 }
 
-function promisifyPush (push: Push): Promise<unknown> {
-  return new Promise((resolve, reject) => {
+async function promisifyPush (push: Push): Promise<unknown> {
+  return await new Promise((resolve, reject) => {
     push
       .receive('ok', (response) => {
         resolve(response)
       })
       .receive('error', ({ reason }) => {
+        /* eslint-disable @typescript-eslint/restrict-template-expressions */
         logger.debug(`Received error response: ${reason}`)
         reject(new Error(reason))
       })

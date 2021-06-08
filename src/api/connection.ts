@@ -68,6 +68,7 @@ function connectionPath (legacyQuery: LegacyConnectionQuery): string {
     return `/connection/${query.id}`
   }
 
+  /* eslint-disable  @typescript-eslint/restrict-template-expressions */
   throw new Error(`Unknown query type for connection: ${query}`)
 }
 
@@ -81,7 +82,7 @@ export function getConnectionStatus (conn: ConnectionOnly | ConnectionShell | un
   }
 
   const { authorization } = conn
-  if (authorization && authorization.status !== AuthorizationStatus.error) {
+  if ((authorization != null) && authorization.status !== AuthorizationStatus.error) {
     return ConnectionStatus.Connected
   }
 
@@ -119,7 +120,7 @@ export async function getConnectionPublic (config: IKitConfig, connectorSlug: st
 export async function getConnectionToken (config: AuthorizedConfig, legacyQuery: LegacyConnectionQuery): Promise<string | null> {
   try {
     const connection = await getConnection(config, legacyQuery)
-    if (connection.enabled && connection.authorization && connection.authorization.access_token) {
+    if (connection.enabled && connection?.authorization?.access_token != null) {
       return connection.authorization.access_token
     }
   } catch (e) {
@@ -156,7 +157,7 @@ export async function removeConnection (config: AuthorizedConfig, legacyQuery: L
 }
 
 export async function listConnections (config: AuthorizedConfig, connectorSlug?: string): Promise<Connection[]> {
-  const path = connectorSlug ? `/connections?slug=${encodeURIComponent(connectorSlug)}` : '/connections'
+  const path = connectorSlug != null ? `/connections?slug=${encodeURIComponent(connectorSlug)}` : '/connections'
 
   const {
     connections

@@ -56,7 +56,7 @@ export interface AuthWindow {
 type AuthWindowCallback<T> = (authWindow: AuthWindow) => Promise<T>
 
 type Screen = { height: number, width: number } | undefined
-const SCREEN: Screen = typeof window !== 'undefined' && window.screen ? window.screen : undefined
+const SCREEN: Screen = typeof window !== 'undefined' ? window.screen : undefined
 
 const AUTH_POP_WIDTH_PX = 625
 const AUTH_POP_HEIGHT_PX = 700
@@ -69,8 +69,8 @@ const AUTH_POP_PARAMS: string = Object.entries({
   width: AUTH_POP_WIDTH_PX,
   height: AUTH_POP_HEIGHT_PX,
   // Center the auth popup window on user's screen
-  left: SCREEN ? SCREEN.width / 2 - AUTH_POP_WIDTH_PX / 2 : 0,
-  top: SCREEN ? SCREEN.height / 2 - AUTH_POP_HEIGHT_PX / 2 : 0
+  left: (SCREEN?.width != null) ? SCREEN.width / 2 - AUTH_POP_WIDTH_PX / 2 : 0,
+  top: (SCREEN?.height != null) ? SCREEN.height / 2 - AUTH_POP_HEIGHT_PX / 2 : 0
 }).reduce((paramStr: string, [key, val]: [string, string | number]) => `${paramStr},${key}=${val}`, '')
 
 function windowName (): string {
@@ -87,7 +87,7 @@ function popupOrigin (config: IKitConfig): string {
 
 function loadingURL (config: IKitConfig, authorization?: Authorization, token?: string): string {
   const params: Record<string, string> = { opener_origin: window.location.origin }
-  if (token) { params.token = token }
+  if (token != null) { params.token = token }
   const queryString = Object.keys(params).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
 
   return `${popupHost(config)}${loadingPath(authorization)}?${queryString}`
@@ -110,8 +110,8 @@ function monitorAuthWindowReady (config: IKitConfig): () => Promise<void> {
 
   window.addEventListener('message', listener)
 
-  return function (): Promise<void> {
-    return new Promise((resolve) => {
+  return async function (): Promise<void> {
+    return await new Promise((resolve) => {
       if (authWindowReady) {
         resolve()
         return
@@ -126,7 +126,7 @@ function isAuthorizationReadyForSetup (auth: Authorization): auth is Authorizati
 }
 
 async function replaceAuthWindowURL (config: IKitConfig, authWindow: AuthWindow, url: string): Promise<AuthWindow> {
-  if (!authWindow.ref || authWindow.ref.closed) {
+  if (authWindow.ref == null || authWindow.ref.closed) {
     throw new AuthorizationError('Installation cancelled.')
   }
 
@@ -154,7 +154,7 @@ async function onAuthWindowClose (authWindow: AuthWindow): Promise<void> {
 }
 
 export async function prepareAuthWindow<T> (config: IKitConfig, authWindowCallback: AuthWindowCallback<T>): Promise<T> {
-  if (!config.token) {
+  if (config.token != null) {
     throw new AuthorizationError('Unauthorized.')
   }
 
@@ -178,8 +178,8 @@ export async function prepareAuthWindow<T> (config: IKitConfig, authWindowCallba
   }
 }
 
-export function prepareAuthWindowWithConfig<T> (callWithConfig: CallWithConfig, callback: AuthWindowCallback<T>): Promise<T> {
-  return callWithConfig((config) => prepareAuthWindow(config, callback))
+export async function prepareAuthWindowWithConfig<T> (callWithConfig: CallWithConfig, callback: AuthWindowCallback<T>): Promise<T> {
+  return await callWithConfig(async (config) => await prepareAuthWindow(config, callback))
 }
 
 async function loadAuthWindow (callWithConfig: CallWithConfig, authWindow: AuthWindow, authorization: Authorization): Promise<void> {
@@ -187,11 +187,11 @@ async function loadAuthWindow (callWithConfig: CallWithConfig, authWindow: AuthW
     throw new AuthorizationError('Authorization is not in a state to be setup.')
   }
 
-  callWithConfig(config => replaceAuthWindowURL(config, authWindow, authorization.authorize_url))
+  await callWithConfig(async config => await replaceAuthWindowURL(config, authWindow, authorization.authorize_url))
 
   await onAuthWindowClose(authWindow)
 
-  const newAuthorization = await callWithConfig(config => updateAuthorization(config, authorization))
+  const newAuthorization = await callWithConfig(async config => await updateAuthorization(config, authorization))
 
   if (newAuthorization.status === AuthorizationStatus.awaiting_callback) {
     throw new AuthorizationError('Installation cancelled.')
@@ -202,7 +202,7 @@ async function updateAuthorization (config: AuthorizedConfig, authorization: Aut
   const newAuthorization = await getAuthorization(config, authorization.authorizer.prototype.slug, authorization.id)
 
   if (newAuthorization.status === AuthorizationStatus.error) {
-    throw new AuthorizationError(newAuthorization.error_message || 'Installation failed.', newAuthorization.error_code)
+    throw new AuthorizationError(newAuthorization.error_message ?? 'Installation failed.', newAuthorization.error_code)
   }
 
   return newAuthorization
@@ -211,19 +211,19 @@ async function updateAuthorization (config: AuthorizedConfig, authorization: Aut
 // TODO: make this concurrent with loading the connection?
 async function loginToAuthWindow (callWithConfig: CallWithConfig, authWindow: AuthWindow, authorization: Authorization): Promise<AuthWindow> {
   const oneTimeToken = await callWithConfig(getOneTimeToken)
-  return await callWithConfig(config => {
+  return await callWithConfig(async config => {
     const url = loadingURL(config, authorization, oneTimeToken)
-    return replaceAuthWindowURL(config, authWindow, url)
+    return await replaceAuthWindowURL(config, authWindow, url)
   })
 }
 
-export function authorize (callWithConfig: CallWithConfig, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
-  return new Promise((resolve, reject) => {
+export async function authorize (callWithConfig: CallWithConfig, authWindow: AuthWindow, authorization: Authorization): Promise<Authorization> {
+  return await new Promise((resolve, reject) => {
     loginToAuthWindow(callWithConfig, authWindow, authorization)
-      .then(() => callWithConfig(config => subscribeToStatus(config, authorization.id)))
+      .then(async () => await callWithConfig(async config => await subscribeToStatus(config, authorization.id)))
       .then(([emitter, status]: [Emitter, AuthorizationStatus]) => {
         if (isComplete(status)) {
-          callWithConfig(config => updateAuthorization(config, authorization)).then(resolve).catch(reject)
+          callWithConfig(async config => await updateAuthorization(config, authorization)).then(resolve).catch(reject)
           return
         }
 
@@ -232,7 +232,7 @@ export function authorize (callWithConfig: CallWithConfig, authWindow: AuthWindo
         emitter.on<{status: AuthorizationStatus}>('status_update', ({ status }) => {
           logger.debug('received status update', status)
           if (isComplete(status)) {
-            callWithConfig(config => updateAuthorization(config, authorization)).then(resolve).catch(reject)
+            callWithConfig(async config => await updateAuthorization(config, authorization)).then(resolve).catch(reject)
             emitter.removeAllListeners()
           }
         })

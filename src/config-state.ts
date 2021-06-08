@@ -29,6 +29,8 @@ function isUnauthorized (e: Error): boolean {
          e.message.toLowerCase() === 'unauthorized'
 }
 
+function noop (): void {};
+
 // User session management.
 //
 // The class encapsulates the logic of managing the user session. xkit.js contains publicly
@@ -54,12 +56,12 @@ class StateManager {
 
     this.emitter = emitter
     this.emitter.on(CONFIG_UPDATE_EVENT, ({ domain }: Partial<ConfigState>) => {
-      if (domain) {
-        this.initializeConfig()
+      if (domain != null) {
+        this.initializeConfig().then(noop, noop)
       }
     })
-    if (this.state.domain) {
-      this.initializeConfig()
+    if (this.state.domain != null) {
+      this.initializeConfig().then(noop, noop)
     }
   }
 
@@ -111,16 +113,16 @@ class StateManager {
 
     const newToken = await tokenCallback()
     this.setState({ token: newToken })
-    return this.callWithConfig(fn, fallbackFn)
+    return await this.callWithConfig(fn, fallbackFn)
   }
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>): ((...args: any[]) => Promise<T>) => {
-    return (...args: any[]): Promise<T> => {
-      const curriedFn = (config: AuthorizedConfig): Promise<T> => fn(config, ...args)
+    return async (...args: any[]): Promise<T> => {
+      const curriedFn = async (config: AuthorizedConfig): Promise<T> => await fn(config, ...args)
       const curriedFallbackFn = fallbackFn == null
         ? undefined
-        : (config: IKitConfig): Promise<T> => fallbackFn(config, ...args)
-      return this.callWithConfig(curriedFn, curriedFallbackFn)
+        : async (config: IKitConfig): Promise<T> => await fallbackFn(config, ...args)
+      return await this.callWithConfig(curriedFn, curriedFallbackFn)
     }
   }
 
@@ -172,7 +174,7 @@ class StateManager {
       domain
     } = this.getState()
 
-    if (retrievingToken) {
+    if (retrievingToken != null) {
       const token = await retrievingToken
       return token
     }
@@ -191,16 +193,17 @@ class StateManager {
   }
 
   private async initializeConfig (): Promise<void> {
-    this.setLoginRedirect()
+    await this.setLoginRedirect()
     const { token } = this.getState()
-    if (token) {
-      this.login(token)
+    if (token != null) {
+      await this.login(token)
     } else {
       try {
         this.setState({ loading: true })
-        await this.retrieveToken()
+        const token = await this.retrieveToken()
+        await this.login(token)
       } catch (e) {
-        logger.debug('User is not yet logged into Xkit.', e)
+        logger.debug('User is not yet logged into Xkit.', e as Error)
       } finally {
         this.setState({ loading: false })
       }
@@ -210,14 +213,14 @@ class StateManager {
   private async setLoginRedirect (): Promise<void> {
     try {
       const { domain } = this.getState()
-      const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain })
-      if (!loginRedirectUrl) {
-        logger.warn('Unable to retrieve login redirect URL')
-      } else {
+      const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain }) ?? {}
+      if (loginRedirectUrl != null) {
         this.setState({ loginRedirect: loginRedirectUrl })
+      } else {
+        logger.warn('Unable to retrieve login redirect URL')
       }
     } catch (e) {
-      logger.warn(`Unable to retrieve login redirect URL: ${e.message}`)
+      logger.warn(`Unable to retrieve login redirect URL: ${String(e.message)}`)
     }
   }
 }
