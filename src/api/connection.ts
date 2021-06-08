@@ -71,7 +71,7 @@ function connectionPath (legacyQuery: LegacyConnectionQuery): string {
   throw new Error(`Unknown query type for connection: ${query}`)
 }
 
-export function connectionStatus (conn: ConnectionOnly | ConnectionShell | undefined): ConnectionStatus {
+export function getConnectionStatus (conn: ConnectionOnly | ConnectionShell | undefined): ConnectionStatus {
   if (!isConnection(conn)) {
     return ConnectionStatus.NotInstalled
   }
