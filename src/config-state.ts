@@ -29,7 +29,7 @@ function isUnauthorized (e: Error): boolean {
          e.message.toLowerCase() === 'unauthorized'
 }
 
-function noop (): void {};
+function noop (): void {}
 
 // User session management.
 //
@@ -57,11 +57,11 @@ class StateManager {
     this.emitter = emitter
     this.emitter.on(CONFIG_UPDATE_EVENT, ({ domain }: Partial<ConfigState>) => {
       if (domain != null) {
-        this.initializeConfig().then(noop, noop)
+        this.initializeConfig().then(noop).catch(() => logger.warn('Unable to initialize config'))
       }
     })
     if (this.state.domain != null) {
-      this.initializeConfig().then(noop, noop)
+      this.initializeConfig().then(noop).catch(() => logger.warn('Unable to initialize config'))
     }
   }
 
@@ -193,17 +193,16 @@ class StateManager {
   }
 
   private async initializeConfig (): Promise<void> {
-    await this.setLoginRedirect()
+    this.setLoginRedirect().then(noop).catch((e) => logger.debug(`Unable to set Login redirect ${e.message as string}`))
     const { token } = this.getState()
     if (token != null) {
       await this.login(token)
     } else {
       try {
         this.setState({ loading: true })
-        const token = await this.retrieveToken()
-        await this.login(token)
+        await this.retrieveToken()
       } catch (e) {
-        logger.debug('User is not yet logged into Xkit.', e as Error)
+        logger.debug('User is not yet logged into Xkit.', e)
       } finally {
         this.setState({ loading: false })
       }
@@ -213,11 +212,12 @@ class StateManager {
   private async setLoginRedirect (): Promise<void> {
     try {
       const { domain } = this.getState()
-      const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain }) ?? {}
-      if (loginRedirectUrl != null) {
+      const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain })
+      if (loginRedirectUrl !== '' && loginRedirectUrl != null) {
         this.setState({ loginRedirect: loginRedirectUrl })
       } else {
         logger.warn('Unable to retrieve login redirect URL')
+        throw new Error('Unable to retrieve login redirect URL')
       }
     } catch (e) {
       logger.warn(`Unable to retrieve login redirect URL: ${String(e.message)}`)

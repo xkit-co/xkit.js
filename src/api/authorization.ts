@@ -56,7 +56,7 @@ export interface Authorization {
   state?: string
 }
 
-function noop (): void {};
+function noop (): void {}
 
 function isStatus (status: string): status is AuthorizationStatus {
   const statuses: string[] = Object.values(AuthorizationStatus)
@@ -129,7 +129,9 @@ export async function subscribeToStatus (config: AuthorizedConfig, authorization
 
     if (isComplete(statusUpdate)) {
       logger.debug(`Removing subscription to authorization status, now in a terminal state: ${status}.`)
-      leave(channel).then(noop, noop)
+      leave(channel)
+        .then(noop)
+        .catch((e) => logger.error(`Leaving Channel failed with ${e.message as string}`))
     }
   })
 

@@ -1,14 +1,14 @@
 import { IKitConfig } from '../config'
 import { request } from './request'
 
-export type Platform = {
+export interface Platform {
   name: string
   slug: string
   custom_domain?: string
   website: string
   login_redirect_url: string
   remove_branding: boolean
-} | undefined
+}
 
 export async function getPlatformPublic (config: IKitConfig): Promise<Platform> {
   const {

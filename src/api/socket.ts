@@ -84,8 +84,7 @@ async function promisifyPush (push: Push): Promise<unknown> {
         resolve(response)
       })
       .receive('error', ({ reason }) => {
-        /* eslint-disable @typescript-eslint/restrict-template-expressions */
-        logger.debug(`Received error response: ${reason}`)
+        logger.debug(`Received error response: ${reason as string}`)
         reject(new Error(reason))
       })
       .receive('timeout', () => {

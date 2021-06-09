@@ -25,26 +25,26 @@ export async function getAccessToken (config: IKitConfig): Promise<string> {
   } = await request(config, {
     path: '/sessions/token',
     method: 'POST'
-  })
+  }) as { access_token: string }
 
-  if ((accessToken ?? '') === '') {
+  if (accessToken === '' || accessToken == null) {
     throw new Error('No access token was returned')
   }
 
-  return accessToken as string
+  return accessToken
 }
 
 export async function getOneTimeToken (config: AuthorizedConfig): Promise<string> {
   const { ott } = await request(config, {
     path: '/sessions/ott',
     method: 'POST'
-  })
+  }) as { ott: string }
 
-  if ((ott ?? '') === '') {
+  if (ott === '' || ott == null) {
     throw new Error('No one-time token was returned')
   }
 
-  return ott as string
+  return ott
 }
 
 export async function assertToken (config: IKitConfig): Promise<void> {

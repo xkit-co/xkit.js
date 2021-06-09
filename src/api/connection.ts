@@ -82,7 +82,7 @@ export function getConnectionStatus (conn: ConnectionOnly | ConnectionShell | un
   }
 
   const { authorization } = conn
-  if ((authorization != null) && authorization.status !== AuthorizationStatus.error) {
+  if (authorization != null && authorization.status !== AuthorizationStatus.error) {
     return ConnectionStatus.Connected
   }
 
