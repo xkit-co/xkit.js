@@ -7,6 +7,9 @@ export async function delay (ms: number): Promise<boolean> {
 function noop (): void {}
 
 export async function onWindowClose (window: Window, fn = noop, pollDelay = 200): Promise<void> {
+  /* NOTE: window is not modified in the loop because we
+  wait for side effect: Browser being closed by user or by a script
+  */
   /* eslint-disable no-unmodified-loop-condition */
   while (window != null && !window.closed) {
     await delay(pollDelay)

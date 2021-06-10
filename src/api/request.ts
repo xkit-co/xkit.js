@@ -74,7 +74,7 @@ function getFetchOptions (config: IKitConfig, options: RequestOptions): RequestI
   return { headers, ...fetchOptions }
 }
 
-async function parseData (res: Response): Promise<UnknownJSON> {
+async function parseData <T> (res: Response): Promise<T> {
   let data
 
   try {
@@ -111,7 +111,7 @@ Settings: https://app.xkit.co/settings`)
   }
 }
 
-export async function request (config: IKitConfig, options: RequestOptions): Promise<UnknownJSON> {
+export async function request <T> (config: IKitConfig, options: RequestOptions): Promise<T | UnknownJSON> {
   const res = await friendlyFetch(
     `${SCHEME}//${config.domain}${API_PATH}${options.path}`,
     getFetchOptions(config, options)
@@ -123,7 +123,7 @@ export async function request (config: IKitConfig, options: RequestOptions): Pro
 
   // No Content response header
   if (res.status !== 204) {
-    return await parseData(res)
+    return await parseData<T>(res)
   }
 
   return {}

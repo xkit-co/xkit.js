@@ -83,8 +83,8 @@ async function promisifyPush (push: Push): Promise<unknown> {
       .receive('ok', (response) => {
         resolve(response)
       })
-      .receive('error', ({ reason }) => {
-        logger.debug(`Received error response: ${reason as string}`)
+      .receive('error', ({ reason }: { reason: string}) => {
+        logger.debug(`Received error response: ${reason}`)
         reject(new Error(reason))
       })
       .receive('timeout', () => {

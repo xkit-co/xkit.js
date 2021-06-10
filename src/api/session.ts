@@ -1,6 +1,14 @@
 import { IKitConfig, AuthorizedConfig } from '../config'
 import { request } from './request'
 
+export interface GetAccessTokenResponse {
+  access_token: string
+}
+
+export interface GetOneTimeTokenResponse {
+  ott: string
+}
+
 export async function createSession (config: IKitConfig, token: string): Promise<AuthorizedConfig> {
   const configWithToken = Object.assign({}, config, { token })
 
@@ -22,10 +30,10 @@ export async function deleteSession (config: IKitConfig): Promise<void> {
 export async function getAccessToken (config: IKitConfig): Promise<string> {
   const {
     access_token: accessToken
-  } = await request(config, {
+  } = await request<GetAccessTokenResponse>(config, {
     path: '/sessions/token',
     method: 'POST'
-  }) as { access_token: string }
+  }) as GetAccessTokenResponse
 
   if (accessToken === '' || accessToken == null) {
     throw new Error('No access token was returned')
@@ -38,7 +46,7 @@ export async function getOneTimeToken (config: AuthorizedConfig): Promise<string
   const { ott } = await request(config, {
     path: '/sessions/ott',
     method: 'POST'
-  }) as { ott: string }
+  }) as GetOneTimeTokenResponse
 
   if (ott === '' || ott == null) {
     throw new Error('No one-time token was returned')

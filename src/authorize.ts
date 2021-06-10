@@ -87,7 +87,9 @@ function popupOrigin (config: IKitConfig): string {
 
 function loadingURL (config: IKitConfig, authorization?: Authorization, token?: string): string {
   const params: Record<string, string> = { opener_origin: window.location.origin }
-  if (token != null && token !== '') { params.token = token }
+  if (token != null && token !== '') {
+    params.token = token
+  }
   const queryString = Object.keys(params).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&')
 
   return `${popupHost(config)}${loadingPath(authorization)}?${queryString}`

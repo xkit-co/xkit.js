@@ -29,8 +29,6 @@ function isUnauthorized (e: Error): boolean {
          e.message.toLowerCase() === 'unauthorized'
 }
 
-function noop (): void {}
-
 // User session management.
 //
 // The class encapsulates the logic of managing the user session. xkit.js contains publicly
@@ -57,11 +55,11 @@ class StateManager {
     this.emitter = emitter
     this.emitter.on(CONFIG_UPDATE_EVENT, ({ domain }: Partial<ConfigState>) => {
       if (domain != null) {
-        this.initializeConfig().then(noop).catch(() => logger.warn('Unable to initialize config'))
+        this.initializeConfig().catch(() => logger.warn('Unable to initialize config'))
       }
     })
     if (this.state.domain != null) {
-      this.initializeConfig().then(noop).catch(() => logger.warn('Unable to initialize config'))
+      this.initializeConfig().catch(() => logger.warn('Unable to initialize config'))
     }
   }
 
@@ -193,7 +191,7 @@ class StateManager {
   }
 
   private async initializeConfig (): Promise<void> {
-    this.setLoginRedirect().then(noop).catch((e) => logger.debug(`Unable to set Login redirect ${e.message as string}`))
+    this.setLoginRedirect().catch((e) => logger.debug(`Unable to set Login redirect ${e.message as string}`))
     const { token } = this.getState()
     if (token != null) {
       await this.login(token)
@@ -216,8 +214,7 @@ class StateManager {
       if (loginRedirectUrl !== '' && loginRedirectUrl != null) {
         this.setState({ loginRedirect: loginRedirectUrl })
       } else {
-        logger.warn('Unable to retrieve login redirect URL')
-        throw new Error('Unable to retrieve login redirect URL')
+        throw new Error('Returned redirect URL was undefined or blank')
       }
     } catch (e) {
       logger.warn(`Unable to retrieve login redirect URL: ${String(e.message)}`)
