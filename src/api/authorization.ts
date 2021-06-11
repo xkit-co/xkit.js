@@ -68,7 +68,7 @@ export function isComplete (status: string): boolean {
 
 // TODO: Don't hardcode this in here
 export function loadingPath (authorization?: Authorization): string {
-  if (!authorization) {
+  if (authorization == null) {
     return '/authorizations/loading'
   }
   return `/authorizations/${authorization.authorizer.prototype.slug}/loading`
@@ -122,12 +122,13 @@ export async function subscribeToStatus (config: AuthorizedConfig, authorization
     emitter.emit('close')
   })
 
-  channel.on('status_update', async ({ status }) => {
-    emitter.emit('status_update', { status })
+  channel.on('status_update', ({ status: statusUpdate }) => {
+    emitter.emit('status_update', { status: statusUpdate })
 
-    if (isComplete(status)) {
+    if (isComplete(statusUpdate)) {
       logger.debug(`Removing subscription to authorization status, now in a terminal state: ${status}.`)
-      await leave(channel)
+      leave(channel)
+        .catch((e) => logger.error(`Leaving Channel failed with ${e.message as string}`))
     }
   })
 

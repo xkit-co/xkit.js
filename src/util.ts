@@ -1,5 +1,5 @@
-export function delay (ms: number): Promise<boolean> {
-  return new Promise((resolve) => {
+export async function delay (ms: number): Promise<boolean> {
+  return await new Promise((resolve) => {
     setTimeout(() => resolve(true), ms)
   })
 }
@@ -7,6 +7,10 @@ export function delay (ms: number): Promise<boolean> {
 function noop (): void {}
 
 export async function onWindowClose (window: Window, fn = noop, pollDelay = 200): Promise<void> {
+  /* NOTE: window is not modified in the loop because we
+  wait for side effect: Browser being closed by user or by a script
+  */
+  /* eslint-disable no-unmodified-loop-condition */
   while (window != null && !window.closed) {
     await delay(pollDelay)
   }
@@ -55,5 +59,5 @@ export function deprecate<T> (fn: (this: any, ...args: unknown[]) => T, name?: s
 }
 
 export function deprecationWarning (name?: string, alternative?: string): void {
-  logger.warn(`${name || 'this function'} is deprecated.${alternative ? ` Use ${alternative} instead.` : ''}`)
+  logger.warn(`${name ?? 'this function'} is deprecated.${(alternative !== undefined) ? ` Use ${alternative} instead.` : ''}`)
 }

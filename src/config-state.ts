@@ -54,12 +54,12 @@ class StateManager {
 
     this.emitter = emitter
     this.emitter.on(CONFIG_UPDATE_EVENT, ({ domain }: Partial<ConfigState>) => {
-      if (domain) {
-        this.initializeConfig()
+      if (domain != null) {
+        this.initializeConfig().catch(() => logger.warn('Unable to initialize config'))
       }
     })
-    if (this.state.domain) {
-      this.initializeConfig()
+    if (this.state.domain != null) {
+      this.initializeConfig().catch(() => logger.warn('Unable to initialize config'))
     }
   }
 
@@ -111,16 +111,16 @@ class StateManager {
 
     const newToken = await tokenCallback()
     this.setState({ token: newToken })
-    return this.callWithConfig(fn, fallbackFn)
+    return await this.callWithConfig(fn, fallbackFn)
   }
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>): ((...args: any[]) => Promise<T>) => {
-    return (...args: any[]): Promise<T> => {
-      const curriedFn = (config: AuthorizedConfig): Promise<T> => fn(config, ...args)
+    return async (...args: any[]): Promise<T> => {
+      const curriedFn = async (config: AuthorizedConfig): Promise<T> => await fn(config, ...args)
       const curriedFallbackFn = fallbackFn == null
         ? undefined
-        : (config: IKitConfig): Promise<T> => fallbackFn(config, ...args)
-      return this.callWithConfig(curriedFn, curriedFallbackFn)
+        : async (config: IKitConfig): Promise<T> => await fallbackFn(config, ...args)
+      return await this.callWithConfig(curriedFn, curriedFallbackFn)
     }
   }
 
@@ -172,7 +172,7 @@ class StateManager {
       domain
     } = this.getState()
 
-    if (retrievingToken) {
+    if (retrievingToken != null) {
       const token = await retrievingToken
       return token
     }
@@ -191,10 +191,10 @@ class StateManager {
   }
 
   private async initializeConfig (): Promise<void> {
-    this.setLoginRedirect()
+    this.setLoginRedirect().catch((e) => logger.debug(`Unable to set Login redirect ${e.message as string}`))
     const { token } = this.getState()
-    if (token) {
-      this.login(token)
+    if (token != null) {
+      await this.login(token)
     } else {
       try {
         this.setState({ loading: true })
@@ -211,13 +211,13 @@ class StateManager {
     try {
       const { domain } = this.getState()
       const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain })
-      if (!loginRedirectUrl) {
-        logger.warn('Unable to retrieve login redirect URL')
-      } else {
+      if (loginRedirectUrl !== '' && loginRedirectUrl != null) {
         this.setState({ loginRedirect: loginRedirectUrl })
+      } else {
+        throw new Error('Returned redirect URL was undefined or blank')
       }
     } catch (e) {
-      logger.warn(`Unable to retrieve login redirect URL: ${e.message}`)
+      logger.warn(`Unable to retrieve login redirect URL: ${String(e.message)}`)
     }
   }
 }
