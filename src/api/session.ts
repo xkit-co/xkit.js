@@ -30,7 +30,7 @@ export async function deleteSession (config: IKitConfig): Promise<void> {
 export async function getAccessToken (config: IKitConfig): Promise<string> {
   const {
     access_token: accessToken
-  } = await request<GetAccessTokenResponse>(config, {
+  } = await request(config, {
     path: '/sessions/token',
     method: 'POST'
   }) as GetAccessTokenResponse
