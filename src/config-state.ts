@@ -26,7 +26,7 @@ export type TokenCallback = () => Promise<string>
 
 function isUnauthorized (e: Error): boolean {
   return (e instanceof IKitAPIError && e.statusCode === 401) ||
-         e.message.toLowerCase() === 'unauthorized'
+         e.message.toLowerCase().includes('unauthorized')
 }
 
 // User session management.
@@ -110,8 +110,11 @@ class StateManager {
     }
 
     const newToken = await tokenCallback()
+    if (newToken == null) {
+      throw new Error('Error while retrieving new token, token was undefined.')
+    }
     this.setState({ token: newToken })
-    return await this.callWithConfig(fn, fallbackFn)
+    return await fn({ domain, token: newToken })
   }
 
   curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>): ((...args: any[]) => Promise<T>) => {
@@ -143,11 +146,11 @@ class StateManager {
 
     try {
       let token
-      if (typeof tokenOrFunc === 'string') {
-        token = tokenOrFunc
-      } else {
+      if (typeof tokenOrFunc === 'function') {
         tokenCallback = tokenOrFunc
         token = await tokenOrFunc()
+      } else {
+        token = tokenOrFunc
       }
 
       await createSession({ domain }, token)
