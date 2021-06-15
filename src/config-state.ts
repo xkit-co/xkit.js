@@ -26,7 +26,7 @@ export type TokenCallback = () => Promise<string>
 
 function isUnauthorized (e: Error): boolean {
   return (e instanceof IKitAPIError && e.statusCode === 401) ||
-         e.message.toLowerCase() === 'unauthorized'
+         e.message.toLowerCase().includes('unauthorized')
 }
 
 // User session management.
