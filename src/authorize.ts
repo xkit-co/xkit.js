@@ -158,7 +158,7 @@ async function onAuthWindowClose (authWindow: AuthWindow): Promise<void> {
 export async function prepareAuthWindow<T> (config: IKitConfig, authWindowCallback: AuthWindowCallback<T>): Promise<T> {
   // TODO: we should always open a window before we call anything asynchronous. This error can have the unintended effect of
   // showing an error message when we actually want to call the `tokenCallback` (e.g. redirect).
-  if (config.token == null || config.token === '') {
+  if (config.token == null) {
     throw new AuthorizationError('Unauthorized.')
   }
 
