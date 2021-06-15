@@ -110,8 +110,8 @@ class StateManager {
     }
 
     const newToken = await tokenCallback()
-    if (newToken == null || newToken === '') {
-      throw new Error('Error while retrieving new token, token was undefined or blank.')
+    if (newToken == null) {
+      throw new Error('Error while retrieving new token, token was undefined.')
     }
     this.setState({ token: newToken })
     return await fn({ domain, token: newToken })
