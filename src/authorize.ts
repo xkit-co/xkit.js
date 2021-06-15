@@ -156,7 +156,7 @@ async function onAuthWindowClose (authWindow: AuthWindow): Promise<void> {
 }
 
 export async function prepareAuthWindow<T> (config: IKitConfig, authWindowCallback: AuthWindowCallback<T>): Promise<T> {
-  if (config.token != null) {
+  if (config.token == null || config.token === '') {
     throw new AuthorizationError('Unauthorized.')
   }
 
