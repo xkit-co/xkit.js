@@ -3,12 +3,15 @@ import { UnknownJSON } from './api/request'
 import {
   Connection,
   ConnectionShell,
+  ConnectionOnly,
+  ConnectionStatus,
   LegacyConnectionQuery,
   listConnections,
   getConnection,
   getConnectionOrConnector,
   getConnectionPublic,
-  getConnectionToken
+  getConnectionToken,
+  connectionStatus
 } from './api/connection'
 import {
   Connector,
@@ -20,7 +23,9 @@ import {
 } from './api/connector'
 import {
   setAuthorizationFields,
-  Authorization
+  Authorization,
+  AuthorizationStatus,
+  CollectField
 } from './api/authorization'
 import {
   connect,
@@ -35,6 +40,19 @@ import {
 } from './api/platform'
 import Emitter from './emitter'
 import { deprecate } from './util'
+
+export { 
+  Connector, 
+  Connection, 
+  ConnectionOnly,
+  ConnectionShell,
+  ConnectionStatus,
+  connectionStatus,
+  Platform, 
+  Authorization,
+  AuthorizationStatus,
+  CollectField
+ }
 
 type XkitEvents = 'connection:enable' | 'connection:disable' | 'config:update'
 
