@@ -14,7 +14,7 @@ export interface CollectField {
   suffix?: string
 }
 
-interface AuthorizerPrototype {
+export interface AuthorizerPrototype {
   name: string
   slug: string
   collect_video_url?: string
@@ -29,7 +29,7 @@ interface AuthorizerPrototype {
   collect_save?: string
 }
 
-interface Authorizer {
+export interface Authorizer {
   client_id: string
   prototype: AuthorizerPrototype
 }
