@@ -18,7 +18,7 @@ export {
   Connection,
   ConnectionShell,
   ConnectionOnly,
-  ConnectionStatus,
+  ConnectionStatus
 } from './api/connection'
 export {
   TokenCallback
