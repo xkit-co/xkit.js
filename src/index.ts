@@ -1,4 +1,5 @@
 import xkit from './xkit'
+export default xkit
 
 export {
   Authorization,
@@ -18,7 +19,6 @@ export {
   ConnectionShell,
   ConnectionOnly,
   ConnectionStatus,
-  connectionStatus
 } from './api/connection'
 export {
   TokenCallback
@@ -26,4 +26,3 @@ export {
 export {
   XkitJs
 } from './xkit'
-export default xkit
