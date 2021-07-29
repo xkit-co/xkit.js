@@ -207,7 +207,7 @@ async function updateAuthorization (config: AuthorizedConfig, authorization: Aut
   const newAuthorization = await getAuthorization(config, authorization.authorizer.prototype.slug, authorization.id)
 
   if (newAuthorization.status === AuthorizationStatus.error) {
-    throw new AuthorizationError(newAuthorization.error_message ?? 'Installation failed.', newAuthorization.error_code)
+    throw new AuthorizationError(newAuthorization.error_message ?? 'Connection failed.', newAuthorization.error_code)
   }
 
   return newAuthorization
@@ -248,7 +248,7 @@ export async function authorize (callWithConfig: CallWithConfig, authWindow: Aut
         })
         emitter.on('close', () => {
           logger.debug('Emitter closed')
-          reject(new AuthorizationError('Installation failed. Network error.'))
+          reject(new AuthorizationError('Connection failed. Network error.'))
           emitter.removeAllListeners()
         })
 
