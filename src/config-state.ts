@@ -1,11 +1,7 @@
 import { IKitConfig, AuthorizedConfig } from './config'
 import { IKitAPIError } from './api/request'
 import { getPlatformPublic } from './api/platform'
-import {
-  createSession,
-  deleteSession,
-  getAccessToken
-} from './api/session'
+import { createSession, deleteSession, getAccessToken } from './api/session'
 import Emitter from './emitter'
 import { logger } from './util'
 
@@ -21,12 +17,16 @@ export interface ConfigState extends InitialConfigState {
   tokenCallback: TokenCallback
 }
 
-export type CallWithConfig = <T>(fn: (config: AuthorizedConfig) => Promise<T>) => Promise<T>
+export type CallWithConfig = <T>(
+  fn: (config: AuthorizedConfig) => Promise<T>
+) => Promise<T>
 export type TokenCallback = () => Promise<string>
 
-function isUnauthorized (e: Error): boolean {
-  return (e instanceof IKitAPIError && e.statusCode === 401) ||
-         e.message.toLowerCase().includes('unauthorized')
+function isUnauthorized(e: Error): boolean {
+  return (
+    (e instanceof IKitAPIError && e.statusCode === 401) ||
+    e.message.toLowerCase().includes('unauthorized')
+  )
 }
 
 // User session management.
@@ -45,7 +45,7 @@ class StateManager {
   private readonly state: ConfigState
   emitter: Emitter
 
-  constructor (initialState: InitialConfigState, emitter: Emitter) {
+  constructor(initialState: InitialConfigState, emitter: Emitter) {
     this.state = {
       ...initialState,
       loading: true,
@@ -55,11 +55,15 @@ class StateManager {
     this.emitter = emitter
     this.emitter.on(CONFIG_UPDATE_EVENT, ({ domain }: Partial<ConfigState>) => {
       if (domain != null) {
-        this.initializeConfig().catch(() => logger.warn('Unable to initialize config'))
+        this.initializeConfig().catch(() =>
+          logger.warn('Unable to initialize config')
+        )
       }
     })
     if (this.state.domain != null) {
-      this.initializeConfig().catch(() => logger.warn('Unable to initialize config'))
+      this.initializeConfig().catch(() =>
+        logger.warn('Unable to initialize config')
+      )
     }
   }
 
@@ -81,7 +85,10 @@ class StateManager {
     return Object.assign({}, this.state)
   }
 
-  callWithConfig = async <T>(fn: (config: AuthorizedConfig) => Promise<T>, fallbackFn?: (config: IKitConfig) => Promise<T>): Promise<T> => {
+  callWithConfig = async <T>(
+    fn: (config: AuthorizedConfig) => Promise<T>,
+    fallbackFn?: (config: IKitConfig) => Promise<T>
+  ): Promise<T> => {
     const { token, domain, tokenCallback } = this.getState()
 
     try {
@@ -89,7 +96,9 @@ class StateManager {
         return await fn({ domain, token })
       }
     } catch (e) {
-      if (!isUnauthorized(e)) { throw e }
+      if (!isUnauthorized(e)) {
+        throw e
+      }
     }
 
     // We didn't have a token or the token has expired.
@@ -99,8 +108,14 @@ class StateManager {
       const newToken = await this.retrieveToken()
       return await fn({ domain, token: newToken })
     } catch (e) {
-      if (!isUnauthorized(e)) { throw e }
-      logger.error(`Encountered error while refreshing access: ${e != null ? String(e.message) : 'undefined'}`)
+      if (!isUnauthorized(e)) {
+        throw e
+      }
+      logger.error(
+        `Encountered error while refreshing access: ${
+          e != null ? String(e.message) : 'undefined'
+        }`
+      )
     }
 
     // Attempting to refresh the token didn't help.
@@ -117,12 +132,18 @@ class StateManager {
     return await fn({ domain, token: newToken })
   }
 
-  curryWithConfig = <T>(fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>, fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>): ((...args: any[]) => Promise<T>) => {
+  curryWithConfig = <T>(
+    fn: (config: AuthorizedConfig, ...args: any[]) => Promise<T>,
+    fallbackFn?: (config: IKitConfig, ...args: any[]) => Promise<T>
+  ): ((...args: any[]) => Promise<T>) => {
     return async (...args: any[]): Promise<T> => {
-      const curriedFn = async (config: AuthorizedConfig): Promise<T> => await fn(config, ...args)
-      const curriedFallbackFn = fallbackFn == null
-        ? undefined
-        : async (config: IKitConfig): Promise<T> => await fallbackFn(config, ...args)
+      const curriedFn = async (config: AuthorizedConfig): Promise<T> =>
+        await fn(config, ...args)
+      const curriedFallbackFn =
+        fallbackFn == null
+          ? undefined
+          : async (config: IKitConfig): Promise<T> =>
+              await fallbackFn(config, ...args)
       return await this.callWithConfig(curriedFn, curriedFallbackFn)
     }
   }
@@ -130,8 +151,12 @@ class StateManager {
   redirect = async (): Promise<never> => {
     const { loginRedirect } = this.getState()
     if (loginRedirect == null) {
-      logger.error('Misconfigured site: unable to retrieve login redirect location')
-      throw new Error('We encountered an unexpected error. Please report this issue.')
+      logger.error(
+        'Misconfigured site: unable to retrieve login redirect location'
+      )
+      throw new Error(
+        'We encountered an unexpected error. Please report this issue.'
+      )
     }
     window.location.href = loginRedirect
     // never release from this function so that the page redirects
@@ -140,7 +165,10 @@ class StateManager {
     throw new Error('unreachable code')
   }
 
-  login = async (tokenOrFunc: string | TokenCallback, tokenCallback?: TokenCallback): Promise<void> => {
+  login = async (
+    tokenOrFunc: string | TokenCallback,
+    tokenCallback?: TokenCallback
+  ): Promise<void> => {
     const { domain } = this.getState()
     this.setState({ loading: true })
 
@@ -170,10 +198,7 @@ class StateManager {
 
   // consolidate requests for a new token
   retrieveToken = async (): Promise<string> => {
-    const {
-      retrievingToken,
-      domain
-    } = this.getState()
+    const { retrievingToken, domain } = this.getState()
 
     if (retrievingToken != null) {
       const token = await retrievingToken
@@ -193,8 +218,10 @@ class StateManager {
     return token
   }
 
-  private async initializeConfig (): Promise<void> {
-    this.setLoginRedirect().catch((e) => logger.debug(`Unable to set Login redirect ${e.message as string}`))
+  private async initializeConfig(): Promise<void> {
+    this.setLoginRedirect().catch((e) =>
+      logger.debug(`Unable to set Login redirect ${e.message as string}`)
+    )
     const { token } = this.getState()
     if (token != null) {
       await this.login(token)
@@ -210,10 +237,12 @@ class StateManager {
     }
   }
 
-  private async setLoginRedirect (): Promise<void> {
+  private async setLoginRedirect(): Promise<void> {
     try {
       const { domain } = this.getState()
-      const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({ domain })
+      const { login_redirect_url: loginRedirectUrl } = await getPlatformPublic({
+        domain
+      })
       if (loginRedirectUrl !== '' && loginRedirectUrl != null) {
         this.setState({ loginRedirect: loginRedirectUrl })
       } else {

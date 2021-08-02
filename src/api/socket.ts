@@ -20,13 +20,15 @@ interface UndocumentedSocket extends Socket {
 
 let appSocket: UndocumentedSocket | null
 
-function resetSocket (socket: UndocumentedSocket): UndocumentedSocket {
+function resetSocket(socket: UndocumentedSocket): UndocumentedSocket {
   socket.reconnectTimer.reset()
   socket.disconnect(() => {})
   return socket
 }
 
-async function initializeSocket (config: AuthorizedConfig): Promise<UndocumentedSocket> {
+async function initializeSocket(
+  config: AuthorizedConfig
+): Promise<UndocumentedSocket> {
   if (appSocket != null) {
     if (appSocket.isConnected()) {
       return appSocket
@@ -47,7 +49,10 @@ async function initializeSocket (config: AuthorizedConfig): Promise<Undocumented
       // the proxy that handles custom domains terminates the connection after 30 seconds.
       heartbeatIntervalMs: 15000
     }
-    const socket = appSocket = new Socket(`${SCHEME}//${config.domain}${SOCKET_ENDPOINT}`, opts) as UndocumentedSocket
+    const socket = (appSocket = new Socket(
+      `${SCHEME}//${config.domain}${SOCKET_ENDPOINT}`,
+      opts
+    ) as UndocumentedSocket)
     let socketHasOpened = false
     socket.onOpen(() => {
       socketHasOpened = true
@@ -77,7 +82,7 @@ async function initializeSocket (config: AuthorizedConfig): Promise<Undocumented
   })
 }
 
-async function promisifyPush (push: Push): Promise<unknown> {
+async function promisifyPush(push: Push): Promise<unknown> {
   return await new Promise((resolve, reject) => {
     push
       .receive('ok', (response) => {
@@ -94,7 +99,10 @@ async function promisifyPush (push: Push): Promise<unknown> {
   })
 }
 
-export async function subscribe (config: AuthorizedConfig, topic: string): Promise<[Channel, unknown]> {
+export async function subscribe(
+  config: AuthorizedConfig,
+  topic: string
+): Promise<[Channel, unknown]> {
   const socket = await initializeSocket(config)
   logger.debug('Initialized socket', socket)
   const channel = socket.channel(topic)
@@ -109,6 +117,6 @@ export async function subscribe (config: AuthorizedConfig, topic: string): Promi
   return [channel, reply]
 }
 
-export async function leave (channel: Channel): Promise<void> {
+export async function leave(channel: Channel): Promise<void> {
   await promisifyPush(channel.leave())
 }

@@ -30,7 +30,7 @@ export class IKitAPIError extends Error {
   statusText: string
   debugMessage?: string
 
-  constructor (message: string, res: Response, debugMessage?: string) {
+  constructor(message: string, res: Response, debugMessage?: string) {
     super()
     // Sigh: https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
     Object.setPrototypeOf(this, IKitAPIError.prototype)
@@ -47,7 +47,10 @@ export class IKitAPIError extends Error {
   }
 }
 
-function getFetchOptions (config: IKitConfig, options: RequestOptions): RequestInit {
+function getFetchOptions(
+  config: IKitConfig,
+  options: RequestOptions
+): RequestInit {
   const headers: Record<string, string> = {
     'Xkit-Js-Version': version,
     Accept: 'application/json'
@@ -74,7 +77,7 @@ function getFetchOptions (config: IKitConfig, options: RequestOptions): RequestI
   return { headers, ...fetchOptions }
 }
 
-async function parseData <T> (res: Response): Promise<T> {
+async function parseData<T>(res: Response): Promise<T> {
   let data
 
   try {
@@ -95,23 +98,30 @@ async function parseData <T> (res: Response): Promise<T> {
   return data
 }
 
-async function friendlyFetch (url: string, options: RequestInit): Promise<ReturnType<typeof fetch>> {
+async function friendlyFetch(
+  url: string,
+  options: RequestInit
+): Promise<ReturnType<typeof fetch>> {
   try {
     const res = await fetch(url, options)
     return res
   } catch (e) {
     if (e.message === 'Failed to fetch') {
       logger.warn(
-`Request failed.
+        `Request failed.
 If the error message above indicates a CORS policy error, you may need to configure the Valid Web Origins to include "${window.location.origin}"
 More info here: https://docs.xkit.co/docs/configure-xkit#website-origin
-Settings: https://app.xkit.co/settings`)
+Settings: https://app.xkit.co/settings`
+      )
     }
     throw e
   }
 }
 
-export async function request <T> (config: IKitConfig, options: RequestOptions): Promise<T | UnknownJSON> {
+export async function request<T>(
+  config: IKitConfig,
+  options: RequestOptions
+): Promise<T | UnknownJSON> {
   const res = await friendlyFetch(
     `${SCHEME}//${config.domain}${API_PATH}${options.path}`,
     getFetchOptions(config, options)

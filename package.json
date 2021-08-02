@@ -17,8 +17,11 @@
     "prepublishOnly": "npm run build-lib",
     "test": "tsc --noEmit",
     "repo": "echo $npm_package_repository_url",
-    "lint": "npx ts-standard",
-    "lint-fix": "npx ts-standard --fix"
+    "lint": "eslint .",
+    "lint-fix": "npm run lint -- --fix",
+    "_prettier": "prettier 'src/**/*.{js,jsx,ts,tsx}'",
+    "format-check": "npm run _prettier -- --check",
+    "format-fix": "npm run _prettier -- --write"
   },
   "author": "Xkit <dev@xkit.co>",
   "license": "MIT",
@@ -28,10 +31,18 @@
     "@types/parcel-bundler": "^1.12.1",
     "@types/phoenix": "^1.4.4",
     "@types/uuid": "^8.3.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.3",
+    "@typescript-eslint/parser": "^4.28.3",
+    "eslint": "^7.31.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-standard-with-typescript": "^20.0.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.0",
     "parcel-bundler": "~1.12.4",
     "parcel-plugin-bundle-visualiser": "^1.2.0",
     "parcel-plugin-stdin": "^0.1.1",
-    "ts-standard": "^10.0.0",
+    "prettier": "^2.3.2",
     "typescript": "~3.9.5"
   },
   "dependencies": {

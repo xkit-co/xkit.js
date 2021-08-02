@@ -56,28 +56,34 @@ export interface Authorization {
   state?: string
 }
 
-function isStatus (status: string): status is AuthorizationStatus {
+function isStatus(status: string): status is AuthorizationStatus {
   const statuses: string[] = Object.values(AuthorizationStatus)
   return statuses.includes(status)
 }
 
-export function isComplete (status: string): boolean {
-  const completeStatuses: string[] = [AuthorizationStatus.active, AuthorizationStatus.error]
+export function isComplete(status: string): boolean {
+  const completeStatuses: string[] = [
+    AuthorizationStatus.active,
+    AuthorizationStatus.error
+  ]
   return completeStatuses.includes(status)
 }
 
 // TODO: Don't hardcode this in here
-export function loadingPath (authorization?: Authorization): string {
+export function loadingPath(authorization?: Authorization): string {
   if (authorization == null) {
     return '/authorizations/loading'
   }
   return `/authorizations/${authorization.authorizer.prototype.slug}/loading`
 }
 
-export async function setAuthorizationFields (config: AuthorizedConfig, prototypeSlug: string, state: string, params: UnknownJSON): Promise<Authorization> {
-  const {
-    authorization
-  } = await request(config, {
+export async function setAuthorizationFields(
+  config: AuthorizedConfig,
+  prototypeSlug: string,
+  state: string,
+  params: UnknownJSON
+): Promise<Authorization> {
+  const { authorization } = await request(config, {
     path: `/authorizations/${prototypeSlug}`,
     method: 'PUT',
     body: {
@@ -89,19 +95,27 @@ export async function setAuthorizationFields (config: AuthorizedConfig, prototyp
   return authorization as Authorization
 }
 
-export async function getAuthorization (config: AuthorizedConfig, prototypeSlug: string, authorizationId: string | number): Promise<Authorization> {
-  const {
-    authorization
-  } = await request(config, {
+export async function getAuthorization(
+  config: AuthorizedConfig,
+  prototypeSlug: string,
+  authorizationId: string | number
+): Promise<Authorization> {
+  const { authorization } = await request(config, {
     path: `/authorizations/${prototypeSlug}/${authorizationId}`
   })
 
   return authorization as Authorization
 }
 
-export async function subscribeToStatus (config: AuthorizedConfig, authorizationId: string | number): Promise<[Emitter, AuthorizationStatus]> {
+export async function subscribeToStatus(
+  config: AuthorizedConfig,
+  authorizationId: string | number
+): Promise<[Emitter, AuthorizationStatus]> {
   const emitter = new Emitter()
-  const [channel, { status }] = (await subscribe(config, `authorization_status:${authorizationId}`)) as [Channel, { status: string }]
+  const [channel, { status }] = (await subscribe(
+    config,
+    `authorization_status:${authorizationId}`
+  )) as [Channel, { status: string }]
   logger.debug('Subscribed to channel', channel)
 
   if (!isStatus(status)) {
@@ -109,7 +123,9 @@ export async function subscribeToStatus (config: AuthorizedConfig, authorization
   }
 
   if (isComplete(status)) {
-    logger.debug(`Removing subscription to authorization status, already in a terminal state: ${status}.`)
+    logger.debug(
+      `Removing subscription to authorization status, already in a terminal state: ${status}.`
+    )
     await leave(channel)
     return [emitter, status]
   }
@@ -126,9 +142,12 @@ export async function subscribeToStatus (config: AuthorizedConfig, authorization
     emitter.emit('status_update', { status: statusUpdate })
 
     if (isComplete(statusUpdate)) {
-      logger.debug(`Removing subscription to authorization status, now in a terminal state: ${status}.`)
-      leave(channel)
-        .catch((e) => logger.error(`Leaving Channel failed with ${e.message as string}`))
+      logger.debug(
+        `Removing subscription to authorization status, now in a terminal state: ${status}.`
+      )
+      leave(channel).catch((e) =>
+        logger.error(`Leaving Channel failed with ${e.message as string}`)
+      )
     }
   })
 

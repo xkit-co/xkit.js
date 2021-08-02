@@ -17,48 +17,50 @@ export interface Connector extends PublicConnector {
   connections?: ConnectionOnly[]
 }
 
-export function connectorPath (slug: string): string {
+export function connectorPath(slug: string): string {
   return `/connectors/${slug}`
 }
 
-export function publicConnectorPath (slug: string): string {
+export function publicConnectorPath(slug: string): string {
   return `/platform/connectors/${slug}`
 }
 
-export async function listConnectors (config: AuthorizedConfig): Promise<Connector[]> {
-  const {
-    connectors
-  } = await request(config, {
+export async function listConnectors(
+  config: AuthorizedConfig
+): Promise<Connector[]> {
+  const { connectors } = await request(config, {
     path: '/connectors'
   })
 
   return connectors as Connector[]
 }
 
-export async function listConnectorsPublic (config: IKitConfig): Promise<PublicConnector[]> {
-  const {
-    connectors
-  } = await request(config, {
+export async function listConnectorsPublic(
+  config: IKitConfig
+): Promise<PublicConnector[]> {
+  const { connectors } = await request(config, {
     path: '/platform/connectors'
   })
 
   return connectors as PublicConnector[]
 }
 
-export async function getConnector (config: AuthorizedConfig, connectorSlug: string): Promise<Connector> {
-  const {
-    connector
-  } = await request(config, {
+export async function getConnector(
+  config: AuthorizedConfig,
+  connectorSlug: string
+): Promise<Connector> {
+  const { connector } = await request(config, {
     path: connectorPath(connectorSlug)
   })
 
   return connector as Connector
 }
 
-export async function getConnectorPublic (config: IKitConfig, connectorSlug: string): Promise<PublicConnector> {
-  const {
-    connector
-  } = await request(config, {
+export async function getConnectorPublic(
+  config: IKitConfig,
+  connectorSlug: string
+): Promise<PublicConnector> {
+  const { connector } = await request(config, {
     path: publicConnectorPath(connectorSlug)
   })
 

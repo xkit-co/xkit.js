@@ -20,7 +20,7 @@ class Emitter {
   target: EventTarget
   listeners: ListenerTypes
 
-  constructor () {
+  constructor() {
     try {
       this.target = new EventTarget()
     } catch (e) {
@@ -30,7 +30,7 @@ class Emitter {
     this.listeners = new Map()
   }
 
-  _getListeners (type: string): Listeners {
+  _getListeners(type: string): Listeners {
     let listeners = this.listeners.get(type)
 
     if (listeners == null) {
@@ -41,30 +41,36 @@ class Emitter {
     return listeners
   }
 
-  on<T> (type: string, fn: EventCallback<T>): void {
+  on<T>(type: string, fn: EventCallback<T>): void {
     const listeners = this._getListeners(type)
     if (listeners.has(fn)) {
-      throw new Error('Can not use the same function for the same type of event more than once.')
+      throw new Error(
+        'Can not use the same function for the same type of event more than once.'
+      )
     }
 
     if (type === DISABLE_CONNECTION_EVENT) {
-      logger.warn(`The ${DISABLE_CONNECTION_EVENT} event is deprecated. Please migrate to the ${REMOVE_CONNECTION_EVENT}.`)
+      logger.warn(
+        `The ${DISABLE_CONNECTION_EVENT} event is deprecated. Please migrate to the ${REMOVE_CONNECTION_EVENT}.`
+      )
     }
 
     const listener = ((event: CustomEvent<T>): void => {
       if (event.type === type) {
         fn(event.detail)
       }
-    // https://github.com/Microsoft/TypeScript/issues/28357
+      // https://github.com/Microsoft/TypeScript/issues/28357
     }) as EventListener
     listeners.set(fn, listener)
     this.target.addEventListener(type, listener)
   }
 
-  off<T> (type: string, fn: EventCallback<T>): void {
+  off<T>(type: string, fn: EventCallback<T>): void {
     const listeners = this._getListeners(type)
     if (!listeners.has(fn)) {
-      throw new Error('The supplied function is not a listener on the given type.')
+      throw new Error(
+        'The supplied function is not a listener on the given type.'
+      )
     }
     const listener = listeners.get(fn)
     if (listener != null) {
@@ -73,11 +79,11 @@ class Emitter {
     }
   }
 
-  emit (type: string, payload?: unknown): void {
+  emit(type: string, payload?: unknown): void {
     this.target.dispatchEvent(new CustomEvent(type, { detail: payload }))
   }
 
-  removeAllListeners (): void {
+  removeAllListeners(): void {
     this.listeners.forEach((listeners, type) => {
       listeners.forEach((_, userListener) => {
         this.off(type, userListener)

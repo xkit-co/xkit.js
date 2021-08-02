@@ -10,10 +10,8 @@ export interface Platform {
   remove_branding: boolean
 }
 
-export async function getPlatformPublic (config: IKitConfig): Promise<Platform> {
-  const {
-    platform
-  } = await request(config, {
+export async function getPlatformPublic(config: IKitConfig): Promise<Platform> {
+  const { platform } = await request(config, {
     path: '/platform'
   })
 

@@ -8,21 +8,13 @@ export {
   AuthorizerPrototype,
   CollectField
 } from './api/authorization'
-export {
-  Platform
-} from './api/platform'
-export {
-  Connector
-} from './api/connector'
+export { Platform } from './api/platform'
+export { Connector } from './api/connector'
 export {
   Connection,
   ConnectionShell,
   ConnectionOnly,
   ConnectionStatus
 } from './api/connection'
-export {
-  TokenCallback
-} from './config-state'
-export {
-  XkitJs
-} from './xkit'
+export { TokenCallback } from './config-state'
+export { XkitJs } from './xkit'
