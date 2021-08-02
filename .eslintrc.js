@@ -14,8 +14,6 @@ module.exports = {
   // Generally it's preferable to stick with ts-standard rules set.
   // If you are adding or disabling anything, please add related comments.
   rules: {
-    // will put it back as a part of #646
-    '@typescript-eslint/strict-boolean-expressions': 'off',
     // We need to mark async function call in useEffect, since we can't use async functions there
     'no-void': ['error', { allowAsStatement: true }]
   },
