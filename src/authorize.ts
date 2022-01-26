@@ -1,5 +1,5 @@
 import { IKitConfig, AuthorizedConfig } from './config'
-import { CallWithConfig } from './config-state'
+import { CallWithConfig, CreateSocket } from './config-state'
 import {
   getAuthorization,
   Authorization,
@@ -281,17 +281,16 @@ async function loginToAuthWindow(
 
 export async function authorize(
   callWithConfig: CallWithConfig,
+  createSocket: CreateSocket,
   authWindow: AuthWindow,
   authorization: Authorization
 ): Promise<Authorization> {
   return await new Promise((resolve, reject) => {
     loginToAuthWindow(callWithConfig, authWindow, authorization)
-      .then(
-        async () =>
-          await callWithConfig(
-            async (config) => await subscribeToStatus(config, authorization.id)
-          )
-      )
+      .then(async () => {
+        const socket = await createSocket()
+        return await subscribeToStatus(socket, authorization.id)
+      })
       .then(([emitter, status]: [Emitter, AuthorizationStatus]) => {
         if (isComplete(status)) {
           callWithConfig(

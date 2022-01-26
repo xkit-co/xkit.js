@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import { AuthorizedConfig } from './config'
-import { CallWithConfig } from './config-state'
+import { CallWithConfig, CreateSocket } from './config-state'
 import { Connector } from './api/connector'
 import {
   createConnection,
@@ -27,6 +27,7 @@ async function updateConnection(
 async function connectWithoutWindow(
   emitter: Emitter,
   callWithConfig: CallWithConfig,
+  createSocket: CreateSocket,
   authWindow: AuthWindow,
   connector: Connector | string,
   id?: string
@@ -37,7 +38,12 @@ async function connectWithoutWindow(
   )
   if (connection.authorization == null)
     throw new Error('Authorization missing.')
-  await authorize(callWithConfig, authWindow, connection.authorization)
+  await authorize(
+    callWithConfig,
+    createSocket,
+    authWindow,
+    connection.authorization
+  )
   const newConnection = await callWithConfig(
     async (config) => await updateConnection(config, connection)
   )
@@ -48,6 +54,7 @@ async function connectWithoutWindow(
 export async function connect(
   emitter: Emitter,
   callWithConfig: CallWithConfig,
+  createSocket: CreateSocket,
   connector: Connector | string
 ): Promise<Connection> {
   const connection = await prepareAuthWindowWithConfig(
@@ -56,6 +63,7 @@ export async function connect(
       return await connectWithoutWindow(
         emitter,
         callWithConfig,
+        createSocket,
         authWindow,
         connector
       )
@@ -79,6 +87,7 @@ export async function disconnect(
 export async function reconnect(
   emitter: Emitter,
   callWithConfig: CallWithConfig,
+  createSocket: CreateSocket,
   connection: Connection
 ): Promise<Connection> {
   const newConnection = await prepareAuthWindowWithConfig(
@@ -87,6 +96,7 @@ export async function reconnect(
       return await connectWithoutWindow(
         emitter,
         callWithConfig,
+        createSocket,
         authWindow,
         connection.connector,
         connection.id
@@ -100,6 +110,7 @@ export async function reconnect(
 export async function addConnection(
   emitter: Emitter,
   callWithConfig: CallWithConfig,
+  createSocket: CreateSocket,
   connector: Connector | string,
   id?: string
 ): Promise<Connection> {
@@ -110,6 +121,7 @@ export async function addConnection(
       return await connectWithoutWindow(
         emitter,
         callWithConfig,
+        createSocket,
         authWindow,
         connector,
         connectionId

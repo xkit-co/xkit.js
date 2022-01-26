@@ -112,13 +112,24 @@ function xkit(domain: string): XkitJs {
       getConnectionPublic
     ),
     getConnectionToken: configState.curryWithConfig(getConnectionToken),
-    connect: connect.bind(null, emitter, configState.callWithConfig),
-    reconnect: reconnect.bind(null, emitter, configState.callWithConfig),
+    connect: connect.bind(
+      null,
+      emitter,
+      configState.callWithConfig,
+      configState.createSocket
+    ),
+    reconnect: reconnect.bind(
+      null,
+      emitter,
+      configState.callWithConfig,
+      configState.createSocket
+    ),
     disconnect: configState.curryWithConfig(disconnect.bind(null, emitter)),
     addConnection: addConnection.bind(
       null,
       emitter,
-      configState.callWithConfig
+      configState.callWithConfig,
+      configState.createSocket
     ),
     removeConnection: configState.curryWithConfig(
       removeConnection.bind(null, emitter)

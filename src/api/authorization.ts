@@ -1,8 +1,7 @@
 import { AuthorizedConfig } from '../config'
 import Emitter from '../emitter'
 import { request, UnknownJSON } from './request'
-import { subscribe, leave } from './socket'
-import { Channel } from 'phoenix'
+import { Socket, subscribe, leave } from './socket'
 import { PublicConnector } from './connector'
 import { logger } from '../util'
 
@@ -108,14 +107,14 @@ export async function getAuthorization(
 }
 
 export async function subscribeToStatus(
-  config: AuthorizedConfig,
+  socket: Socket,
   authorizationId: string | number
 ): Promise<[Emitter, AuthorizationStatus]> {
   const emitter = new Emitter()
-  const [channel, { status }] = (await subscribe(
-    config,
+  const [channel, { status }] = await subscribe<{ status: string }>(
+    socket,
     `authorization_status:${authorizationId}`
-  )) as [Channel, { status: string }]
+  )
   logger.debug('Subscribed to channel', channel)
 
   if (!isStatus(status)) {

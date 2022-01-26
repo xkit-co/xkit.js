@@ -2,6 +2,7 @@ import { IKitConfig, AuthorizedConfig } from './config'
 import { IKitAPIError } from './api/request'
 import { getPlatformPublic } from './api/platform'
 import { createSession, deleteSession, getAccessToken } from './api/session'
+import { createSocket, resetSocket, Socket } from './api/socket'
 import Emitter from './emitter'
 import { logger } from './util'
 
@@ -20,6 +21,7 @@ export interface ConfigState extends InitialConfigState {
 export type CallWithConfig = <T>(
   fn: (config: AuthorizedConfig) => Promise<T>
 ) => Promise<T>
+export type CreateSocket = () => Promise<Socket>
 export type TokenCallback = () => Promise<string>
 
 function isUnauthorized(e: Error): boolean {
@@ -44,6 +46,7 @@ function isUnauthorized(e: Error): boolean {
 class StateManager {
   private readonly state: ConfigState
   emitter: Emitter
+  socket?: Socket
 
   constructor(initialState: InitialConfigState, emitter: Emitter) {
     this.state = {
@@ -182,6 +185,7 @@ class StateManager {
       }
 
       await createSession({ domain }, token)
+      this.removeSocket()
       this.setState({ token, tokenCallback: tokenCallback ?? this.redirect })
     } catch (e) {
       logger.warn(e)
@@ -193,7 +197,24 @@ class StateManager {
   logout = async (): Promise<void> => {
     const { domain } = this.getState()
     await deleteSession({ domain })
+    this.removeSocket()
     this.setState({ token: undefined })
+  }
+
+  createSocket = async (): Promise<Socket> => {
+    if (this.socket?.isConnected() === true) {
+      return this.socket
+    }
+    this.removeSocket()
+    this.socket = await this.callWithConfig(createSocket)
+    return this.socket
+  }
+
+  removeSocket = (): void => {
+    if (this.socket != null) {
+      resetSocket(this.socket)
+      this.socket = undefined
+    }
   }
 
   // consolidate requests for a new token
