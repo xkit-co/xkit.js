@@ -50,7 +50,9 @@ export interface XkitJs {
   getConnector: (slug: string) => Promise<Connector>
   listConnections: (slug?: string) => Promise<Connection[]>
   getConnection: (query: LegacyConnectionQuery) => Promise<Connection>
-  getConnectionOrConnector: (slug: string) => Promise<ConnectionShell>
+  getConnectionOrConnector: (
+    slug: string
+  ) => Promise<Connection | ConnectionShell>
   getConnectionToken: (query: LegacyConnectionQuery) => Promise<string | null>
   connect: (connector: Connector | string) => Promise<Connection>
   reconnect: (connection: Connection) => Promise<Connection>
