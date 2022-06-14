@@ -21,6 +21,7 @@ interface RequestOptions {
   path: string
   method?: RequestMethod
   body?: UnknownJSON
+  allow400AsValid?: boolean
 }
 
 export class IKitAPIError extends Error {
@@ -127,7 +128,11 @@ export async function request<T>(
     getFetchOptions(config, options)
   )
 
-  if (!res.ok) {
+  // TIL: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
+  const allow400AsValid = options.allow400AsValid ?? false
+  const isValidResponse = res.ok || (res.status === 400 && allow400AsValid)
+
+  if (!isValidResponse) {
     throw new IKitAPIError(res.statusText, res)
   }
 

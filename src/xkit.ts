@@ -29,6 +29,12 @@ import {
 import { Platform, getPlatformPublic } from './api/platform'
 import Emitter from './emitter'
 import { deprecate } from './util'
+import {
+  listAPIObjects,
+  listCRMObjects,
+  getMapping,
+  saveMapping
+} from './api/crm'
 
 type XkitEvents = 'connection:enable' | 'connection:disable' | 'config:update'
 
@@ -73,6 +79,14 @@ export interface XkitJs {
     state: string,
     params: UnknownJSON
   ) => Promise<Authorization>
+  listCRMObjects: (mapping: any) => Promise<unknown>
+  listAPIObjects: (connection: Connection) => Promise<unknown>
+  getMapping: (connection: Connection) => Promise<unknown>
+  saveMapping: (
+    connection: Connection,
+    CRMObjects: unknown,
+    objectMappings: unknown
+  ) => Promise<void>
   on: (type: XkitEvents, fn: (payload: unknown) => void) => void
   off: (type: XkitEvents, fn: (payload: unknown) => void) => void
 }
@@ -142,6 +156,10 @@ function xkit(domain: string): XkitJs {
       'xkit.setAuthorizationFields(...)'
     ),
     setAuthorizationFields: configState.curryWithConfig(setAuthorizationFields),
+    listCRMObjects: configState.curryWithConfig(listCRMObjects),
+    listAPIObjects: configState.curryWithConfig(listAPIObjects),
+    getMapping: configState.curryWithConfig(getMapping),
+    saveMapping: configState.curryWithConfig(saveMapping),
     on: emitter.on.bind(emitter),
     off: emitter.off.bind(emitter)
   }

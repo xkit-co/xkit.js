@@ -10,6 +10,8 @@ export interface PublicConnector {
   about?: string
   description?: string
   supports_multiple_connections: boolean
+  sync?: boolean
+  crm?: boolean
 }
 
 export interface Connector extends PublicConnector {
