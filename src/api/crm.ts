@@ -34,12 +34,12 @@ export async function getMapping(
   config: AuthorizedConfig,
   connection: Connection
 ): Promise<unknown> {
-  const { mapping } = await request<{ mapping: unknown }>(config, {
+  const response = await request(config, {
     path: `/connection/${connection.id}/crm_mapping`,
     method: 'GET'
   })
 
-  return mapping
+  return response
 }
 
 export async function saveMapping(
