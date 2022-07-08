@@ -30,6 +30,21 @@ export async function listAPIObjects(
   return APIObjects
 }
 
+export async function getAPIObject(
+  config: AuthorizedConfig,
+  connection: Connection,
+  apiObjectSlug: string
+): Promise<unknown> {
+  const { api_object: APIObject } = await request<{
+    api_object: unknown
+  }>(config, {
+    path: `/connection/${connection.id}/api_objects/${apiObjectSlug}`,
+    method: 'GET'
+  })
+
+  return APIObject
+}
+
 export async function getMapping(
   config: AuthorizedConfig,
   connection: Connection

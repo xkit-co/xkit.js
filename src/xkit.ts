@@ -33,7 +33,8 @@ import {
   listAPIObjects,
   listCRMObjects,
   getMapping,
-  saveMapping
+  saveMapping,
+  getAPIObject
 } from './api/crm'
 
 type XkitEvents = 'connection:enable' | 'connection:disable' | 'config:update'
@@ -81,6 +82,10 @@ export interface XkitJs {
   ) => Promise<Authorization>
   listCRMObjects: (mapping: any) => Promise<unknown>
   listAPIObjects: (connection: Connection) => Promise<unknown>
+  getAPIObject: (
+    connection: Connection,
+    apiObjectSlug: string
+  ) => Promise<unknown>
   getMapping: (connection: Connection) => Promise<unknown>
   saveMapping: (
     connection: Connection,
@@ -158,6 +163,7 @@ function xkit(domain: string): XkitJs {
     setAuthorizationFields: configState.curryWithConfig(setAuthorizationFields),
     listCRMObjects: configState.curryWithConfig(listCRMObjects),
     listAPIObjects: configState.curryWithConfig(listAPIObjects),
+    getAPIObject: configState.curryWithConfig(getAPIObject),
     getMapping: configState.curryWithConfig(getMapping),
     saveMapping: configState.curryWithConfig(saveMapping),
     on: emitter.on.bind(emitter),
