@@ -4,10 +4,11 @@ import { request } from './request'
 
 export async function listCRMObjects(
   config: AuthorizedConfig,
+  connection: Connection,
   mapping: any
 ): Promise<unknown> {
   const response = await request(config, {
-    path: '/crm_setup',
+    path: `/connection/${connection.id}/crm_setup`,
     method: 'POST',
     body: mapping,
     allow400AsValid: true

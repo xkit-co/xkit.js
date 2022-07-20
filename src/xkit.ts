@@ -80,7 +80,7 @@ export interface XkitJs {
     state: string,
     params: UnknownJSON
   ) => Promise<Authorization>
-  listCRMObjects: (mapping: any) => Promise<unknown>
+  listCRMObjects: (connection: Connection, mapping: any) => Promise<unknown>
   listAPIObjects: (connection: Connection) => Promise<unknown>
   getAPIObject: (
     connection: Connection,
