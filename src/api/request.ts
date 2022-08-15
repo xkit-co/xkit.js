@@ -21,7 +21,7 @@ interface RequestOptions {
   path: string
   method?: RequestMethod
   body?: UnknownJSON
-  allow400AsValid?: boolean
+  statusCodesToIncludeBody?: number[]
 }
 
 export class IKitAPIError extends Error {
@@ -30,8 +30,14 @@ export class IKitAPIError extends Error {
   statusCode: number
   statusText: string
   debugMessage?: string
+  body?: any
 
-  constructor(message: string, res: Response, debugMessage?: string) {
+  constructor(
+    message: string,
+    res: Response,
+    debugMessage?: string,
+    body?: any
+  ) {
     super()
     // Sigh: https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
     Object.setPrototypeOf(this, IKitAPIError.prototype)
@@ -45,6 +51,7 @@ export class IKitAPIError extends Error {
         this.message = `${this.message} (debug: ${this.debugMessage})`
       }
     }
+    this.body = body
   }
 }
 
@@ -128,12 +135,13 @@ export async function request<T>(
     getFetchOptions(config, options)
   )
 
-  // TIL: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing_operator
-  const allow400AsValid = options.allow400AsValid ?? false
-  const isValidResponse = res.ok || (res.status === 400 && allow400AsValid)
-
-  if (!isValidResponse) {
-    throw new IKitAPIError(res.statusText, res)
+  if (!res.ok) {
+    if (options.statusCodesToIncludeBody?.includes(res.status) ?? false) {
+      const body = await parseData<any>(res)
+      throw new IKitAPIError(res.statusText, res, undefined, body)
+    } else {
+      throw new IKitAPIError(res.statusText, res)
+    }
   }
 
   // No Content response header

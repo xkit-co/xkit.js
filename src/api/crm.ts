@@ -11,7 +11,7 @@ export async function listCRMObjects(
     path: `/connection/${connection.id}/crm_setup`,
     method: 'POST',
     body: mapping,
-    allow400AsValid: true
+    statusCodesToIncludeBody: [400]
   })
 
   return response
